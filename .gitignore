@@ -43,3 +43,7 @@ example/quartus
 # Caffe
 caffe/dataset/*
 *.caffemodel
+
+*.swp
+
+

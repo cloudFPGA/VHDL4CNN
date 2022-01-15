@@ -20,6 +20,9 @@
 --                          |       |-- output_streams-->
 --                           ______
 -----------------------------------------------------------------------------
+-- update from: NGL, based on Haddoc2
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_signed.all;
@@ -36,6 +39,7 @@ entity ConvLayer is
     KERNEL_SIZE  : integer;
     NB_IN_FLOWS  : integer;
     NB_OUT_FLOWS : integer;
+    USE_RELU_ACTIVATION : boolean: = true;
     KERNEL_VALUE : pixel_matrix;
     BIAS_VALUE   : pixel_array
     );
@@ -109,6 +113,19 @@ architecture STRUCTURAL of ConvLayer is
       out_data : out std_logic_vector (BITWIDTH-1 downto 0)
       );
   end component TanhLayer;
+
+
+  component ReluLayer
+    generic (
+      BITWIDTH : integer;
+      SUM_WIDTH  : integer
+      );
+    port (
+      in_data  : in  std_logic_vector (SUM_WIDTH-1 downto 0);
+      out_data : out std_logic_vector (BITWIDTH-1 downto 0)
+      );
+  end component ReluLayer;
+
   ------------------------------------------------------------------------------------------
   signal neighborhood_data : pixel_array (0 to NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1);
   signal neighborhood_dv   : std_logic;
@@ -162,21 +179,33 @@ begin
         out_fv   => open
         );
 
-    -- Dummy Activation
-    TanhLayer_i : TanhLayer
-      generic map (
-        BITWIDTH => BITWIDTH,
-        SUM_WIDTH  => SUM_WIDTH
-        )
-      port map (
-        in_data  => dp_data(n),
-        out_data => out_data(n)
-        );
+    relu_activation: if USE_RELU_ACTIVATION generate
+      ReluLayer_i: ReluLayer
+        generic map (
+          BITWIDTH => BITWIDTH,
+          SUM_WIDTH  => SUM_WIDTH
+          )
+        port map (
+          in_data  => dp_data(n),
+          out_data => out_data(n)
+          );
+    end generate;
+    
+    tanh_activation: if not USE_RELU_ACTIVATION generate
+      TanhLayer_i : TanhLayer
+        generic map (
+          BITWIDTH => BITWIDTH,
+          SUM_WIDTH  => SUM_WIDTH
+          )
+        port map (
+          in_data  => dp_data(n),
+          out_data => out_data(n)
+          );
+    end generate;
 
     out_dv <= in_dv;
     out_fv <= in_fv;
   end generate;
-
 
 
 end architecture;
