@@ -30,7 +30,7 @@ end entity;
 
 architecture bhv of DynDisplayLayer is
 begin
-  output_combine: for i in 0 to NB_IN_FLOWS-1 generateerate
+  output_combine: for i in 0 to NB_IN_FLOWS-1 generate
     out_data((i+1)*BITWIDTH-1 downto i*BITWIDTH) <= in_data(i);
   end generate output_combine;
   out_dv   <= in_dv;

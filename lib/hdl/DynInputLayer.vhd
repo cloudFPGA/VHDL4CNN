@@ -38,9 +38,9 @@ begin
       out_data <= (others => (others => '0'));
     else
       if (enable = '1') then
-        generate_inDemux : for i in 0 to NB_OUT_FLOWS-1 generate
+        inDemux : for i in 0 to NB_OUT_FLOWS-1 loop
           out_data(i) <= '0' & in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH);
-        end generate generate_inDemux;
+        end loop inDemux;
       end if;
       out_dv <= in_dv;
       out_fv <= in_fv;
