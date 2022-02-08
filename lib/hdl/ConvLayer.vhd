@@ -39,7 +39,7 @@ entity ConvLayer is
     KERNEL_SIZE  : integer;
     NB_IN_FLOWS  : integer;
     NB_OUT_FLOWS : integer;
-    USE_RELU_ACTIVATION : boolean: = true;
+    USE_RELU_ACTIVATION : boolean;
     KERNEL_VALUE : pixel_matrix;
     BIAS_VALUE   : pixel_array
     );
