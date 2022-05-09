@@ -190,7 +190,7 @@ begin
           out_data => out_data(n)
           );
     end generate;
-
+    
     tanh_activation: if not USE_RELU_ACTIVATION generate
       TanhLayer_i : TanhLayer
         generic map (
@@ -203,8 +203,8 @@ begin
           );
     end generate;
 
-    out_dv <= neighborhood_dv;
-    out_fv <= neighborhood_fv;
+    out_dv <= in_dv;
+    out_fv <= in_fv;
   end generate;
 
 
