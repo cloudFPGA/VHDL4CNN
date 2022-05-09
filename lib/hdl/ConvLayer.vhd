@@ -203,9 +203,9 @@ begin
           );
     end generate;
 
+    out_dv <= neighborhood_dv;
+    out_fv <= neighborhood_fv;
   end generate;
-  out_dv <= neighborhood_dv;
-  out_fv <= neighborhood_fv;
 
 
 end architecture;
