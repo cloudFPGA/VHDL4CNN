@@ -156,28 +156,55 @@ begin
       );
 
   DotProduct_loop : for n in 0 to NB_OUT_FLOWS- 1 generate
-    DotProduct_i : DotProduct
-      generic map (
-        BITWIDTH       => BITWIDTH,
-        SUM_WIDTH        => SUM_WIDTH,
-        DOT_PRODUCT_SIZE => NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,
-        BIAS_VALUE       => BIAS_VALUE(n),
-        KERNEL_VALUE     => extractRow(n,
-                                   NB_OUT_FLOWS,  -- N
-                                   NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,  -- CJK
-                                   KERNEL_VALUE)  --Theta(n)
-        )
-      port map (
-        clk      => clk,
-        reset_n  => reset_n,
-        enable   => enable,
-        in_data  => neighborhood_data,
-        in_dv    => neighborhood_dv,
-        in_fv    => neighborhood_fv,
-        out_data => dp_data(n),
-        out_dv   => open,
-        out_fv   => open
-        );
+    DotProduct_0 : if n = 0 generate
+      DotProduct_0_inst : DotProduct
+        generic map (
+          BITWIDTH       => BITWIDTH,
+          SUM_WIDTH        => SUM_WIDTH,
+          DOT_PRODUCT_SIZE => NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,
+          BIAS_VALUE       => BIAS_VALUE(n),
+          KERNEL_VALUE     => extractRow(n,
+                                     NB_OUT_FLOWS,  -- N
+                                     NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,  -- CJK
+                                     KERNEL_VALUE)  --Theta(n)
+          )
+        port map (
+          clk      => clk,
+          reset_n  => reset_n,
+          enable   => enable,
+          in_data  => neighborhood_data,
+          in_dv    => neighborhood_dv,
+          in_fv    => neighborhood_fv,
+          out_data => dp_data(n),
+          out_dv   => dp_dv,
+          out_fv   => dp_fv
+          );
+    end generate DotProduct_0;
+
+    DotProduct_i : if n > 0 generate
+      DotProduct_i_inst : DotProduct
+        generic map (
+          BITWIDTH       => BITWIDTH,
+          SUM_WIDTH        => SUM_WIDTH,
+          DOT_PRODUCT_SIZE => NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,
+          BIAS_VALUE       => BIAS_VALUE(n),
+          KERNEL_VALUE     => extractRow(n,
+                                     NB_OUT_FLOWS,  -- N
+                                     NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE,  -- CJK
+                                     KERNEL_VALUE)  --Theta(n)
+          )
+        port map (
+          clk      => clk,
+          reset_n  => reset_n,
+          enable   => enable,
+          in_data  => neighborhood_data,
+          in_dv    => neighborhood_dv,
+          in_fv    => neighborhood_fv,
+          out_data => dp_data(n),
+          out_dv   => open,
+          out_fv   => open
+          );
+    end generate DotProduct_i;
 
     relu_activation: if USE_RELU_ACTIVATION generate
       ReluLayer_i: ReluLayer
@@ -190,7 +217,7 @@ begin
           out_data => out_data(n)
           );
     end generate;
-    
+
     tanh_activation: if not USE_RELU_ACTIVATION generate
       TanhLayer_i : TanhLayer
         generic map (
@@ -203,9 +230,9 @@ begin
           );
     end generate;
 
-    out_dv <= in_dv;
-    out_fv <= in_fv;
-  end generate;
+    out_dv <= dp_dv;
+    out_fv <= dp_fv;
+  end generate DotProduct_loop;
 
 
 end architecture;

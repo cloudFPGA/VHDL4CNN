@@ -81,6 +81,7 @@ architecture rtl of neighExtractor is
 
   -- signals
   signal pixel_out : pixel_array(0 to KERNEL_SIZE-1);
+  signal dv_out_vec : std_logic_vector(0 to KERNEL_SIZE-1);
   signal tmp_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
   signal all_valid : std_logic;
   signal s_valid   : std_logic;
@@ -89,6 +90,7 @@ architecture rtl of neighExtractor is
   signal tmp_fv    : std_logic;
   signal delay_dv  : std_logic;
   signal delay_fv  : std_logic;
+  signal taps_valid_data : std_logic;
 
   -- components
   component taps
@@ -102,26 +104,28 @@ architecture rtl of neighExtractor is
       clk       : in  std_logic;
       reset_n   : in  std_logic;
       enable    : in  std_logic;
+      in_dv     : in std_logic;
       in_data   : in  std_logic_vector (BITWIDTH-1 downto 0);
       taps_data : out pixel_array (0 to KERNEL_SIZE -1);
-      out_data  : out std_logic_vector (BITWIDTH-1 downto 0)
+      out_data  : out std_logic_vector (BITWIDTH-1 downto 0);
+      out_dv    : out std_logic
       );
   end component;
 
 
-  component bit_taps
-    generic (
-      TAPS_WIDTH : integer
-      );
+   --component bit_taps
+   --  generic (
+   --    TAPS_WIDTH : integer
+   --    );
 
-    port (
-      clk      : in  std_logic;
-      reset_n  : in  std_logic;
-      enable   : in  std_logic;
-      in_data  : in  std_logic;
-      out_data : out std_logic
-      );
-  end component;
+   --  port (
+   --    clk      : in  std_logic;
+   --    reset_n  : in  std_logic;
+   --    enable   : in  std_logic;
+   --    in_data  : in  std_logic;
+   --    out_data : out std_logic
+   --    );
+   --end component;
 
 
 begin
@@ -147,9 +151,11 @@ begin
           clk       => clk,
           reset_n   => reset_n,
           enable    => s_valid,
+          in_dv => in_dv,
           in_data   => in_data,
           taps_data => tmp_data(0 to KERNEL_SIZE-1),
-          out_data  => pixel_out(0)
+          out_data  => pixel_out(0),
+          out_dv => dv_out_vec(0)
           );
     end generate gen_1;
 
@@ -165,9 +171,11 @@ begin
           clk       => clk,
           reset_n   => reset_n,
           enable    => s_valid,
+          in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
           taps_data => tmp_data(i * KERNEL_SIZE to KERNEL_SIZE*(i+1)-1),
-          out_data  => pixel_out(i)
+          out_data  => pixel_out(i),
+          out_dv => dv_out_vec(i)
           );
     end generate gen_i;
 
@@ -183,9 +191,11 @@ begin
           clk       => clk,
           reset_n   => reset_n,
           enable    => s_valid,
+          in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
           taps_data => tmp_data((KERNEL_SIZE-1) * KERNEL_SIZE to KERNEL_SIZE*KERNEL_SIZE - 1),
-          out_data  => open
+          out_data  => open,
+          out_dv => taps_valid_data
           );
     end generate gen_last;
   end generate taps_inst;
@@ -211,10 +221,10 @@ begin
     elsif (rising_edge(clk)) then
 
       out_data <= tmp_data;
-      delay_fv <= in_fv;
+      delay_fv <= in_fv and taps_valid_data;
 
       if(enable = '1') then
-        if (in_fv = '1') then
+        if (in_fv = '1') and (taps_valid_data = '1') then
           if(in_dv = '1') then
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
             if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, NBITS_DELAY)) then

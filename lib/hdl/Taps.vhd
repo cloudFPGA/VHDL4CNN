@@ -41,9 +41,11 @@ entity Taps is
     clk       : in  std_logic;
     reset_n   : in  std_logic;
     enable    : in  std_logic;
+    in_dv     : in std_logic;
     in_data   : in  std_logic_vector (BITWIDTH-1 downto 0);
     taps_data : out pixel_array (0 to KERNEL_SIZE -1);
-    out_data  : out std_logic_vector (BITWIDTH-1 downto 0)
+    out_data  : out std_logic_vector (BITWIDTH-1 downto 0);
+    out_dv    : out std_logic
     );
 end Taps;
 
@@ -51,6 +53,7 @@ end Taps;
 architecture bhv of Taps is
 
   signal cell : pixel_array (0 to TAPS_WIDTH-1);
+  signal dv_buffer : std_logic_vector(0 to TAPS_WIDTH-1);
 
 begin
 
@@ -66,11 +69,14 @@ begin
     elsif (rising_edge(clk)) then
       if (enable = '1') then
         cell(0) <= in_data;
+        dv_buffer(0) <= in_dv;
         for i in 1 to (TAPS_WIDTH-1) loop
           cell(i) <= cell(i-1);
+          dv_buffer(i) <= dv_buffer(i-1);
         end loop;
         taps_data <= cell(0 to KERNEL_SIZE-1);
         out_data  <= cell(TAPS_WIDTH-1);
+        out_dv <= dv_buffer(TAPS_WIDTH-1);
       end if;
     end if;
   end process;
