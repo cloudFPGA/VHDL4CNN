@@ -221,7 +221,9 @@ begin
     elsif (rising_edge(clk)) then
 
       out_data <= tmp_data;
-      delay_fv <= in_fv and taps_valid_data;
+      -- delay_fv <= in_fv and taps_valid_data;
+      -- TODO
+      delay_fv <= in_fv;
 
       if(enable = '1') then
         if (in_fv = '1') and (taps_valid_data = '1') then

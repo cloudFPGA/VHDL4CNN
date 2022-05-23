@@ -68,6 +68,7 @@ architecture rtl of DotProduct is
      signal p_prod_data  : prod_array (0 to DOT_PRODUCT_SIZE - 1);
      signal p_prod_valid : std_logic;
      signal s_out_valid  : std_logic;
+
    begin
    MCM_i : MCM
      generic map (
@@ -101,7 +102,9 @@ architecture rtl of DotProduct is
        out_valid => s_out_valid
        );
    out_dv <= s_out_valid;
-   out_fv <= s_out_valid;
+   -- out_fv <= s_out_valid;
+   -- TODO
+   out_fv <= in_fv;
 
   --------------------------------------------------------------
   ---- Direct Implementation as a Pipelined MAC

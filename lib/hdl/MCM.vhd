@@ -27,7 +27,7 @@ end MCM;
 
 architecture rtl of MCM is
   -- Generate DOT_PRODUCT_SIZE Multipliers
-  signal mult : prod_array (0 to DOT_PRODUCT_SIZE - 1);
+  --signal mult : prod_array (0 to DOT_PRODUCT_SIZE - 1);
 
 begin
   ---------------------------------

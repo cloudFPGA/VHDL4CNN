@@ -23,7 +23,8 @@ architecture Bhv of ReluLayer is
 
 begin
 
-  out_data <= (others => '0') when (signed(in_data) < 0 ) else
+  out_data <= (others => '0') when (signed(in_data) < 0) else
+              std_logic_vector(to_signed( SCALE_FACTOR, BITWIDTH)) when (signed(SHIFT_RIGHT(signed(in_data), BITWIDTH)) > to_signed( SCALE_FACTOR, SUM_WIDTH)) else
               std_logic_vector(SHIFT_RIGHT(signed(in_data),BITWIDTH)(BITWIDTH-1 downto 0));
 
 end architecture;
