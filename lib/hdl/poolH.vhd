@@ -46,7 +46,9 @@ begin
       tmp_dv           <= '0';
       buffer_data      <= (others => (others => '0'));
       max_value_signal <= (others => '0');
-      x_cmp            := (others => '0');
+      --x_cmp            := (others => '0');
+      x_cmp  := to_unsigned(1, 16);
+
     elsif (rising_edge(clk)) then
       if (enable = '1') then
         if (in_fv = '1') then
@@ -83,7 +85,8 @@ begin
           tmp_dv           <= '0';
           buffer_data      <= (others => (others => '0'));
           max_value_signal <= (others => '0');
-          x_cmp            := (others => '0');
+          --x_cmp            := (others => '0');
+          x_cmp  := to_unsigned(1, 16);
         end if;
       end if;
     end if;
