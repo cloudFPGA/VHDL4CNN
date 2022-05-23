@@ -230,9 +230,10 @@ begin
           );
     end generate;
 
-    out_dv <= dp_dv;
-    out_fv <= dp_fv;
   end generate DotProduct_loop;
+
+  out_dv <= dp_dv;
+  out_fv <= dp_fv;
 
 
 end architecture;

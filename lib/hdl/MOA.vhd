@@ -71,30 +71,36 @@ architecture rtl of MOA is
 -- Pipelined implmentation --
 -----------------------------
  signal pip_acc : sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
- signal dv_delay : std_logic_vector(0 to NUM_OPERANDS - 1);
+ --signal dv_delay : std_logic_vector(0 to NUM_OPERANDS - 1);
 
 begin
    process(clk)
    begin
      if (reset_n = '0') then
        pip_acc   <= (others => (others => '0'));
-       dv_delay <= (others => '0');
+       --dv_delay <= (others => '0');
        out_valid <= '0';
 
      elsif(rising_edge(clk)) then
        if (enable = '1') then
          if (in_valid = '1') then
            pip_acc(0)(2*BITWIDTH-1 downto 0) <= in_data(0);
-           dv_delay(0) <= in_valid;
            acc_loop : for i in 1 to NUM_OPERANDS-1 loop
              pip_acc(i) <= pip_acc(i-1) + in_data(i);
-             dv_delay(i) <= dv_delay(i-1);
            end loop acc_loop;
+           out_valid <= '1';
          else
            pip_acc   <= (others => (others => '0'));
+           -- dv_delay <= (others => '0');
+           out_valid <= '0';
          end if;
+         -- -- pass delay in all cases
+         -- dv_delay(0) <= in_valid;
+         -- dv_loop : for i in 1 to NUM_OPERANDS-1 loop
+         --   dv_delay(i) <= dv_delay(i-1);
+         -- end loop dv_loop;
          out_data <= pip_acc(NUM_OPERANDS-1) + BIAS_VALUE;
-         out_valid <= dv_delay(NUM_OPERANDS - 1);
+         -- out_valid <= dv_delay(NUM_OPERANDS - 1);
        end if;
      end if;
    end process;
