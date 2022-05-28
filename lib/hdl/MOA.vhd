@@ -67,43 +67,81 @@ architecture rtl of MOA is
 --  end process;
 --  out_data <= s_acc;
 
------------------------------
--- Pipelined implmentation --
------------------------------
- signal pip_acc : sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
- --signal dv_delay : std_logic_vector(0 to NUM_OPERANDS - 1);
+-------------------------------
+---- Pipelined implmentation --
+-------------------------------
+-- signal pip_acc : sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
+-- signal dv_delay : std_logic_vector(0 to NUM_OPERANDS - 1);
+--
+--begin
+--   process(clk)
+--   begin
+--     if (reset_n = '0') then
+--       pip_acc   <= (others => (others => '0'));
+--       dv_delay <= (others => '0');
+--       out_valid <= '0';
+--
+--     elsif(rising_edge(clk)) then
+--       if (enable = '1') then
+--         if (in_valid = '1') then
+--           pip_acc(0)(2*BITWIDTH-1 downto 0) <= in_data(0);
+--           dv_delay(0) <= in_valid;
+--           acc_loop : for i in 1 to NUM_OPERANDS-1 loop
+--             pip_acc(i) <= pip_acc(i-1) + in_data(i);
+--             dv_delay(i) <= dv_delay(i-1);
+--           end loop acc_loop;
+--           out_valid <= '1';
+--         else
+--           pip_acc   <= (others => (others => '0'));
+--           dv_delay <= (others => '0');
+--         end if;
+--         out_data <= pip_acc(NUM_OPERANDS-1) + BIAS_VALUE;
+--         out_valid <= dv_delay(NUM_OPERANDS - 1);
+--       else
+--         out_data <= (others => (others => '0'));
+--         out_valid <= '0';
+--       end if;
+--     end if;
+--   end process;
 
+-------------------------------
+-- recursive implementation
+-- fixes original haddoc2 implementation
+-------------------------------
+
+    signal tmp_data: std_logic_vector (SUM_WIDTH-1 downto 0);
+    signal tmp_valid: std_logic;
+    signal array_cast : sum_array(0 to NUM_OPERANDS-1);
 begin
-   process(clk)
-   begin
-     if (reset_n = '0') then
-       pip_acc   <= (others => (others => '0'));
-       --dv_delay <= (others => '0');
-       out_valid <= '0';
 
-     elsif(rising_edge(clk)) then
-       if (enable = '1') then
-         if (in_valid = '1') then
-           pip_acc(0)(2*BITWIDTH-1 downto 0) <= in_data(0);
-           acc_loop : for i in 1 to NUM_OPERANDS-1 loop
-             pip_acc(i) <= pip_acc(i-1) + in_data(i);
-           end loop acc_loop;
-           out_valid <= '1';
-         else
-           pip_acc   <= (others => (others => '0'));
-           -- dv_delay <= (others => '0');
-           out_valid <= '0';
-         end if;
-         -- -- pass delay in all cases
-         -- dv_delay(0) <= in_valid;
-         -- dv_loop : for i in 1 to NUM_OPERANDS-1 loop
-         --   dv_delay(i) <= dv_delay(i-1);
-         -- end loop dv_loop;
-         out_data <= pip_acc(NUM_OPERANDS-1) + BIAS_VALUE;
-         -- out_valid <= dv_delay(NUM_OPERANDS - 1);
-       end if;
-     end if;
-   end process;
+  tc: for K in array_cast'range generate
+    array_cast(K)(2*BITWIDTH-1 downto 0) <= in_data(K);
+  end generate tc;
+
+  rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+                                  NUM_OPERANDS=>NUM_OPERANDS,ORDER=>0)
+                      port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
+                               in_data=>array_cast,
+                               out_data=>tmp_data, out_valid=>tmp_valid);
+
+  process(clk)
+  begin
+    if (reset_n = '0') then
+      out_data <= (others => '0');
+      out_valid <= '0';
+
+    elsif(rising_edge(clk)) then
+      if (enable = '1') and (tmp_valid='1') then
+        out_data <= tmp_data + BIAS_VALUE;
+        out_valid <= '1';
+      else
+        out_data <= (others => '0');
+        out_valid <= '0';
+      end if;
+    end if;
+  end process;
+
+
 
 
 end architecture;
