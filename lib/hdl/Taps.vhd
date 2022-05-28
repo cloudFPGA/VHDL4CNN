@@ -65,6 +65,7 @@ begin
       cell      <= (others => (others => '0'));
       out_data  <= (others => '0');
       taps_data <= (others => (others => '0'));
+      out_dv <= '0';
 
     elsif (rising_edge(clk)) then
       if (enable = '1') then
@@ -77,6 +78,8 @@ begin
         taps_data <= cell(0 to KERNEL_SIZE-1);
         out_data  <= cell(TAPS_WIDTH-1);
         out_dv <= dv_buffer(TAPS_WIDTH-1);
+      else
+        out_dv <= '0';
       end if;
     end if;
   end process;

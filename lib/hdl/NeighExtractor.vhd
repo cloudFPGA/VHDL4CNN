@@ -87,7 +87,7 @@ architecture rtl of neighExtractor is
   signal s_valid   : std_logic;
   signal buffer_fv : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal tmp_dv    : std_logic;
-  signal tmp_fv    : std_logic;
+  --signal tmp_fv    : std_logic;
   signal delay_dv  : std_logic;
   signal delay_fv  : std_logic;
   signal taps_valid_data : std_logic;
@@ -208,15 +208,15 @@ begin
 
   dv_proc : process(clk)
 
-    constant NBITS_DELAY : integer                           := integer(ceil(log2(real(IMAGE_WIDTH))));
-    variable x_cmp       : unsigned (NBITS_DELAY-1 downto 0) := (others => '0');
-    variable y_cmp       : unsigned (NBITS_DELAY-1 downto 0) := (others => '0');
+    constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH))));
+    variable x_cmp       : unsigned (WIDTH_COUNTER-1 downto 0) := (others => '0');
+    variable y_cmp       : unsigned (WIDTH_COUNTER-1 downto 0) := (others => '0');
 
   begin
     if (reset_n = '0') then
       x_cmp  := (others => '0');
       tmp_dv <= '0';
-      tmp_fv <= '0';
+      --tmp_fv <= '0';
 
     elsif (rising_edge(clk)) then
 
@@ -229,44 +229,44 @@ begin
         if (in_fv = '1') and (taps_valid_data = '1') then
           if(in_dv = '1') then
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
-            if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, NBITS_DELAY)) then
-              if (x_cmp = to_unsigned (IMAGE_WIDTH, NBITS_DELAY)) then
+            if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+              if (x_cmp = to_unsigned (IMAGE_WIDTH, WIDTH_COUNTER)) then
                 tmp_dv <= '0';
                 x_cmp  := (others => '0');
                 y_cmp  := (others => '0');
-              -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, NBITS_DELAY)) then
+              -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
               --     tmp_dv <='0';
-              --     x_cmp := x_cmp + to_unsigned(1,NBITS_DELAY);
+              --     x_cmp := x_cmp + to_unsigned(1,WIDTH_COUNTER);
               else
                 tmp_dv <= '1';
-                x_cmp  := x_cmp + to_unsigned(1, NBITS_DELAY);
+                x_cmp  := x_cmp + to_unsigned(1, WIDTH_COUNTER);
               end if;
 
 
-            elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, NBITS_DELAY)) then
-              tmp_fv <= '0';
+            elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
+              --tmp_fv <= '0';
               tmp_dv <= '0';
 
-              if (x_cmp = to_unsigned (IMAGE_WIDTH, NBITS_DELAY)) then
+              if (x_cmp = to_unsigned (IMAGE_WIDTH, WIDTH_COUNTER)) then
                 x_cmp := (others => '0');
-                y_cmp := y_cmp + to_unsigned(1, NBITS_DELAY);
+                y_cmp := y_cmp + to_unsigned(1, WIDTH_COUNTER);
               else
-                x_cmp := x_cmp + to_unsigned(1, NBITS_DELAY);
+                x_cmp := x_cmp + to_unsigned(1, WIDTH_COUNTER);
               end if;
 
             else
               -- Start of frame
-              if (x_cmp = to_unsigned (IMAGE_WIDTH-1, NBITS_DELAY)) then
+              if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
                 tmp_dv <= '1';
                 x_cmp  := (others => '0');
-                y_cmp  := y_cmp + to_unsigned(1, NBITS_DELAY);
-              elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, NBITS_DELAY)) then
+                y_cmp  := y_cmp + to_unsigned(1, WIDTH_COUNTER);
+              elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
                 tmp_dv <= '0';
-                x_cmp  := x_cmp + to_unsigned(1, NBITS_DELAY);
+                x_cmp  := x_cmp + to_unsigned(1, WIDTH_COUNTER);
               else
-                tmp_fv <= '1';
+                --tmp_fv <= '1';
                 tmp_dv <= '1';
-                x_cmp  := x_cmp + to_unsigned(1, NBITS_DELAY);
+                x_cmp  := x_cmp + to_unsigned(1, WIDTH_COUNTER);
               end if;
 
             end if;
@@ -275,11 +275,12 @@ begin
             tmp_dv <= '0';
           end if;
 
+        -- when fv = 0
         else
           x_cmp  := (others => '0');
           y_cmp  := (others => '0');
           tmp_dv <= '0';
-          tmp_fv <= '0';
+          --tmp_fv <= '0';
         end if;
 
       -- When enable = 0
@@ -287,7 +288,7 @@ begin
         x_cmp  := (others => '0');
         y_cmp  := (others => '0');
         tmp_dv <= '0';
-        tmp_fv <= '0';
+        --tmp_fv <= '0';
       end if;
     end if;
   end process;
