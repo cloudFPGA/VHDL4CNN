@@ -2,7 +2,7 @@
 -- This is a naive implementation with binary adder trees
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_signed.all;
+use ieee.numeric_std.all;
 library work;
 use work.cnn_types.all;
 
@@ -132,7 +132,7 @@ begin
 
     elsif(rising_edge(clk)) then
       if (enable = '1') and (tmp_valid='1') then
-        out_data <= tmp_data + BIAS_VALUE;
+        out_data <= std_logic_vector(signed(tmp_data) + signed(BIAS_VALUE));
         out_valid <= '1';
       else
         out_data <= (others => '0');

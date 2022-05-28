@@ -3,7 +3,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_signed.all;
+use ieee.numeric_std.all;
 use ieee.math_real.all;
 library work;
 use work.cnn_types.all;
@@ -50,7 +50,7 @@ begin
     elsif (rising_edge(clk) and enable = '1') then
       if (in_valid = '1') then
         mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
-          out_data(i) <= KERNEL_VALUE(i) * in_data(i);
+          out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
         end loop;
       end if;
       out_valid <= in_valid;

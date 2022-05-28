@@ -5,7 +5,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_signed.all;
+use ieee.numeric_std.all;
 library work;
 use work.cnn_types.all;
 
@@ -40,18 +40,20 @@ begin
   when 1|2|3|4|5 =>
     l1: process(clk)
       --variable acc: sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
-      variable acc: std_logic_vector(SUM_WIDTH-1 downto 0) := (others => '0');
+      --variable acc: std_logic_vector(SUM_WIDTH-1 downto 0) := (others => '0');
+      variable acc: signed(SUM_WIDTH-1 downto 0) := (others => '0');
     begin
      if (reset_n = '0') then
        out_valid <= '0';
      elsif(rising_edge(clk)) then
        if (enable = '1') and (in_valid = '1') then
         out_valid <= in_valid;
-        acc   := (others => '0');
+        --acc   := (others => '0');
+        acc   := to_signed(0, SUM_WIDTH);
         acc_loop : for i in 0 to NUM_OPERANDS-1 loop
-          acc := acc + in_data(i);
+          acc := acc + signed(in_data(i));
         end loop acc_loop;
-        out_data <= acc;
+        out_data <= std_logic_vector(acc);
        else
          out_data <= (others => '0');
          out_valid <= '0';
@@ -77,7 +79,7 @@ begin
     begin
       lln: for K in pip_store'range generate
         lli_K: if K < (pip_store'length-1) generate
-        ORDER_ala_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+        ala_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
                                        in_data=>in_data(K*DIVIDER_FACTOR to (K+1)*DIVIDER_FACTOR-1),
@@ -85,7 +87,7 @@ begin
                                        out_valid=>dv_store(K));
         end generate lli_K;
         lle_K: if K = (pip_store'length-1) generate
-        ORDER_ale_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+        ale_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>NUM_OPERANDS-K*DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
                                        in_data=>in_data(K*DIVIDER_FACTOR to in_data'length-1),
@@ -104,11 +106,11 @@ begin
       --    end if;
       --  end if;
       --end process;
-      ORDER_ah: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+      ah: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                         NUM_OPERANDS=>((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR),ORDER=>32*(ORDER+1))
                             port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>dv_store(dv_store'length-1),
                                      in_data=>pip_store,out_valid=>out_valid,out_data=>out_data);
-    end block lln;
+    end block ln;
  end generate ta;
 
 

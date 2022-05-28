@@ -21,10 +21,13 @@ end entity;
 
 architecture Bhv of ReluLayer is
 
+  signal scaled_back_data: std_logic_vector(SUM_WIDTH-1 downto 0);
+
 begin
 
+  scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH));
   out_data <= (others => '0') when (signed(in_data) < 0) else
-              std_logic_vector(to_signed( SCALE_FACTOR, BITWIDTH)) when (signed(SHIFT_RIGHT(signed(in_data), BITWIDTH)) > to_signed( SCALE_FACTOR, SUM_WIDTH)) else
-              std_logic_vector(SHIFT_RIGHT(signed(in_data),BITWIDTH)(BITWIDTH-1 downto 0));
+              std_logic_vector(to_signed(SCALE_FACTOR, BITWIDTH)) when (signed(scaled_back_data) > to_signed(SCALE_FACTOR, SUM_WIDTH)) else
+              scaled_back_data(BITWIDTH-1 downto 0);
 
 end architecture;

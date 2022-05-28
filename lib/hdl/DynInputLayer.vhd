@@ -4,7 +4,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_signed.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.cnn_types.all;
