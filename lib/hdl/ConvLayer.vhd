@@ -118,7 +118,8 @@ architecture STRUCTURAL of ConvLayer is
   component ReluLayer
     generic (
       BITWIDTH : integer;
-      SUM_WIDTH  : integer
+      SUM_WIDTH  : integer;
+      KERNEL_SIZE: integer
       );
     port (
       in_data  : in  std_logic_vector (SUM_WIDTH-1 downto 0);
@@ -210,7 +211,8 @@ begin
       ReluLayer_i: ReluLayer
         generic map (
           BITWIDTH => BITWIDTH,
-          SUM_WIDTH  => SUM_WIDTH
+          SUM_WIDTH  => SUM_WIDTH,
+          KERNEL_SIZE => KERNEL_SIZE
           )
         port map (
           in_data  => dp_data(n),

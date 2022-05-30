@@ -32,7 +32,8 @@ end RADD;
 
 
 architecture rtl of RADD is
-  constant DIVIDER_FACTOR : integer := 4;
+  -- max 5!
+  constant DIVIDER_FACTOR : integer := 5;
 
 begin
 
@@ -43,31 +44,35 @@ begin
       --variable acc: std_logic_vector(SUM_WIDTH-1 downto 0) := (others => '0');
       variable acc: signed(SUM_WIDTH-1 downto 0) := (others => '0');
     begin
-     if (reset_n = '0') then
-       out_valid <= '0';
-     elsif(rising_edge(clk)) then
-       if (enable = '1') and (in_valid = '1') then
-        out_valid <= in_valid;
-        --acc   := (others => '0');
-        acc   := to_signed(0, SUM_WIDTH);
-        acc_loop : for i in 0 to NUM_OPERANDS-1 loop
-          acc := acc + signed(in_data(i));
-        end loop acc_loop;
-        out_data <= std_logic_vector(acc);
-       else
-         out_data <= (others => '0');
-         out_valid <= '0';
-       end if;
-     end if;
+      if (rising_edge(clk)) then
+        if (reset_n = '0') then
+          out_valid <= '0';
+          out_data <= (others => '0');
+        elsif (enable = '1') then
+          if (in_valid = '1') then
+            --out_valid <= in_valid;
+            --acc   := (others => '0');
+            acc   := to_signed(0, SUM_WIDTH);
+            acc_loop : for i in 0 to NUM_OPERANDS-1 loop
+              acc := acc + signed(in_data(i));
+            end loop acc_loop;
+            out_data <= std_logic_vector(acc);
+            out_valid <= '1';
+          else
+            out_data <= (others => '0');
+            out_valid <= '0';
+          end if;
+        end if;
+      end if;
     end process l1;
-   --when 3 =>
-   --  l3: entity work.CSA3 generic map(PIPELINE=>false)
-   --                           port map(CLK=>clk,
-   --                                    A=>in_data(0),
-   --                                    B=>in_data(1),
-   --                                    C=>in_data(2),
-   --                                    P=>out_data);
-   --      out_valid <= in_valid and enable;
+  --when 3 =>
+  --  l3: entity work.CSA3 generic map(PIPELINE=>false)
+  --                           port map(CLK=>clk,
+  --                                    A=>in_data(0),
+  --                                    B=>in_data(1),
+  --                                    C=>in_data(2),
+  --                                    P=>out_data);
+  --      out_valid <= in_valid and enable;
   when others =>
     ln: block
       --constant REC_ADDER_NUM: integer  := integer(ceil(real(IMAGE_WIDTH)/3));

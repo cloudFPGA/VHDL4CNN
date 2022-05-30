@@ -119,24 +119,25 @@ begin
   end generate tc;
 
   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
-                                  NUM_OPERANDS=>NUM_OPERANDS,ORDER=>0)
-                      port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
-                               in_data=>array_cast,
-                               out_data=>tmp_data, out_valid=>tmp_valid);
+                                      NUM_OPERANDS=>NUM_OPERANDS,ORDER=>0)
+  port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
+           in_data=>array_cast,
+           out_data=>tmp_data, out_valid=>tmp_valid);
 
   process(clk)
   begin
-    if (reset_n = '0') then
-      out_data <= (others => '0');
-      out_valid <= '0';
-
-    elsif(rising_edge(clk)) then
-      if (enable = '1') and (tmp_valid='1') then
-        out_data <= std_logic_vector(signed(tmp_data) + signed(BIAS_VALUE));
-        out_valid <= '1';
-      else
+    if (rising_edge(clk)) then
+      if (reset_n = '0') then
         out_data <= (others => '0');
         out_valid <= '0';
+      elsif (enable = '1') then
+        if (tmp_valid='1') then
+          out_data <= std_logic_vector(signed(tmp_data) + signed(BIAS_VALUE));
+          out_valid <= '1';
+        else
+          out_data <= (others => '0');
+          out_valid <= '0';
+        end if;
       end if;
     end if;
   end process;

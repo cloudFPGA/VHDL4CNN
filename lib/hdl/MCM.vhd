@@ -4,7 +4,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.math_real.all;
+--use ieee.math_real.all;
 library work;
 use work.cnn_types.all;
 
@@ -29,6 +29,11 @@ architecture rtl of MCM is
   -- Generate DOT_PRODUCT_SIZE Multipliers
   --signal mult : prod_array (0 to DOT_PRODUCT_SIZE - 1);
 
+  -- attribute to force DSP usage
+  -- update: better not...otherwise we have 75% DSP usage with only 20% LUT usage and a difficult timing
+  -- attribute use_dsp : string;
+  -- attribute use_dsp of out_data: signal is "yes";
+
 begin
   ---------------------------------
   -- Assynchronous implmentation --
@@ -44,16 +49,25 @@ begin
 
   process(clk)
   begin
-    if(reset_n = '0') then
-      out_data  <= (others => (others => '0'));
-      out_valid <= '0';
-    elsif (rising_edge(clk) and enable = '1') then
-      if (in_valid = '1') then
-        mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
-          out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
-        end loop;
+    if (rising_edge(clk)) then
+      if(reset_n = '0') then
+        out_data  <= (others => (others => '0'));
+        out_valid <= '0';
+      elsif (enable = '1') then
+        if (in_valid = '1') then
+          mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
+            out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
+          end loop;
+          out_valid <= '1';
+        else
+          out_data <= (others => (others => '0'));
+          out_valid <= '0';
+        end if;
+    --out_valid <= in_valid;
+      --else
+      --  out_data <= (others => (others => '0'));
+      --  out_valid <= '0';
       end if;
-      out_valid <= in_valid;
     end if;
   end process;
 

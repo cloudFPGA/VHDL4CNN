@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.math_real.all;
+--use ieee.math_real.all;
 
 
 entity poolH is
@@ -88,6 +88,8 @@ begin
           --x_cmp            := (others => '0');
           x_cmp  := to_unsigned(1, 16);
         end if;
+      else
+        tmp_dv           <= '0';
       end if;
     end if;
   end process;
@@ -101,6 +103,8 @@ begin
       if (enable = '1') then
         buffer_fv <= buffer_fv(buffer_fv'high -1 downto 0) & in_fv;
         delay_fv  <= buffer_fv(buffer_fv'high);
+      else
+        delay_fv  <= '0';
       end if;
     end if;
   end process;

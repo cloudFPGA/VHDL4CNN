@@ -84,7 +84,7 @@ architecture rtl of neighExtractor is
   signal dv_out_vec : std_logic_vector(0 to KERNEL_SIZE-1);
   signal tmp_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
   signal all_valid : std_logic;
-  signal s_valid   : std_logic;
+  --signal s_valid   : std_logic;
   signal buffer_fv : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal tmp_dv    : std_logic;
   --signal tmp_fv    : std_logic;
@@ -132,7 +132,7 @@ begin
 
   -- All valid : Logic and
   all_valid <= in_dv and in_fv;
-  s_valid   <= all_valid and enable;
+  --s_valid   <= all_valid and enable;
   ----------------------------------------------------
   -- Instantiates taps
   ----------------------------------------------------
@@ -150,7 +150,7 @@ begin
         port map(
           clk       => clk,
           reset_n   => reset_n,
-          enable    => s_valid,
+          enable    => enable,
           in_dv => in_dv,
           in_data   => in_data,
           taps_data => tmp_data(0 to KERNEL_SIZE-1),
@@ -170,7 +170,7 @@ begin
         port map(
           clk       => clk,
           reset_n   => reset_n,
-          enable    => s_valid,
+          enable    => enable,
           in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
           taps_data => tmp_data(i * KERNEL_SIZE to KERNEL_SIZE*(i+1)-1),
@@ -190,7 +190,7 @@ begin
         port map(
           clk       => clk,
           reset_n   => reset_n,
-          enable    => s_valid,
+          enable    => enable,
           in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
           taps_data => tmp_data((KERNEL_SIZE-1) * KERNEL_SIZE to KERNEL_SIZE*KERNEL_SIZE - 1),
