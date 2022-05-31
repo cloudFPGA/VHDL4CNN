@@ -111,10 +111,11 @@ architecture rtl of MOA is
 
     signal tmp_data: std_logic_vector (SUM_WIDTH-1 downto 0);
     signal tmp_valid: std_logic;
-    signal array_cast : sum_array(0 to NUM_OPERANDS-1);
+    signal array_cast : sum_array(NUM_OPERANDS-1 downto 0);
 begin
 
   tc: for K in array_cast'range generate
+    array_cast(K) <= (others => '0');
     array_cast(K)(2*BITWIDTH-1 downto 0) <= in_data(K);
   end generate tc;
 
