@@ -115,8 +115,7 @@ architecture rtl of MOA is
 begin
 
   tc: for K in array_cast'range generate
-    array_cast(K) <= (others => '0');
-    array_cast(K)(2*BITWIDTH-1 downto 0) <= in_data(K);
+    array_cast(K) <= (in_data(k)'length-1  downto 0 => in_data(K), others => '0');
   end generate tc;
 
   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,

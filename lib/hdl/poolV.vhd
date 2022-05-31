@@ -36,72 +36,74 @@ architecture rtl of poolV is
   signal buffer_fv        : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal delay_fv         : std_logic := '0';
   signal tmp_dv           : std_logic := '0';
+  signal x_cmp            : unsigned (15 downto 0);
 
 
 begin
 
   process (clk)
-    variable x_cmp : unsigned (15 downto 0);
-
   begin
-    if (reset_n = '0') then
-      tmp_dv           <= '0';
-      buffer_data      <= (others => (others => '0'));
-      buffer_line      <= (others => (others => '0'));
-      max_value_signal <= (others => '0');
-      -- x_cmp            := (others => '0');
-      x_cmp            := to_unsigned(1, 16);
+    if (rising_edge(clk)) then
+      if (reset_n = '0') then
+        tmp_dv           <= '0';
+        buffer_data      <= (others => (others => '0'));
+        buffer_line      <= (others => (others => '0'));
+        max_value_signal <= (others => '0');
+        -- x_cmp            := (others => '0');
+        x_cmp            <=  to_unsigned(1, 16);
 
-    elsif (rising_edge(clk)) then
-      if (enable = '1') then
-        if (in_fv = '1') then
-          if (in_dv = '1') then
+      elsif (enable = '1') and (in_fv = '1') then
+        if (in_dv = '1') then
 
-            -- Bufferize line --------------------------------------------------------
-            buffer_line(IMAGE_WIDTH - 1) <= signed(in_data);
-            BUFFER_LOOP : for i in (IMAGE_WIDTH - 1) downto 1 loop
-              buffer_line(i-1) <= buffer_line(i);
-            end loop;
+          -- Bufferize line --------------------------------------------------------
+          buffer_line(IMAGE_WIDTH - 1) <= signed(in_data);
+          BUFFER_LOOP : for i in (IMAGE_WIDTH - 1) downto 1 loop
+            buffer_line(i-1) <= buffer_line(i);
+          end loop;
 
-            buffer_data(0) <= signed(in_data);
-            buffer_data(1) <= buffer_line(0);
+          buffer_data(0) <= signed(in_data);
+          buffer_data(1) <= buffer_line(0);
 
-            -- Compute max : Case2 , just a comparator --------------------------------
-            if (buffer_data(0) > buffer_data(1)) then
-              max_value_signal <= buffer_data(0);
-            else
-              max_value_signal <= buffer_data(1);
-            end if;
-
-            -- V Subsample -------------------------------------------------------------
-            if (x_cmp < to_unsigned(IMAGE_WIDTH+1, 16)) then
-              tmp_dv <= '0';
-              x_cmp  := x_cmp + to_unsigned(1, 16);
-            elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
-              tmp_dv <= '0';
-              x_cmp  := to_unsigned(2, 16);
-            else
-              tmp_dv <= '1';
-              x_cmp  := x_cmp + to_unsigned(1, 16);
-            end if;
-          --------------------------------------------------------------------------
+          -- Compute max : Case2 , just a comparator --------------------------------
+          -- TODO: I guess, due to the counters (+1, 2) it is intended that we compare last cycles values
+          if (buffer_data(0) > buffer_data(1)) then
+            max_value_signal <= buffer_data(0);
           else
-            -- Data is not valid
-            tmp_dv <= '0';
+            max_value_signal <= buffer_data(1);
           end if;
+
+          -- V Subsample -------------------------------------------------------------
+          if (x_cmp < to_unsigned(IMAGE_WIDTH+1, 16)) then
+            tmp_dv <= '0';
+            x_cmp  <=  x_cmp + to_unsigned(1, 16);
+          elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
+            tmp_dv <= '0';
+            x_cmp  <=  to_unsigned(2, 16);
+          else
+            tmp_dv <= '1';
+            x_cmp  <=  x_cmp + to_unsigned(1, 16);
+          end if;
+        --------------------------------------------------------------------------
         else
-          buffer_data      <= (others => (others => '0'));
-          buffer_line      <= (others => (others => '0'));
+          -- Data is not valid
           max_value_signal <= (others => '0');
-          -- x_cmp            := (others => '0');
-          x_cmp            := to_unsigned(1, 16);
           tmp_dv <= '0';
         end if;
+      --  else
+      --    buffer_data      <= (others => (others => '0'));
+      --    buffer_line      <= (others => (others => '0'));
+      --    max_value_signal <= (others => '0');
+      --  -- x_cmp            := (others => '0');
+      --    x_cmp            := to_unsigned(1, 16);
+      --    tmp_dv <= '0';
+      --  end if;
       else
+        max_value_signal <= (others => '0');
         tmp_dv <= '0';
       end if;
     end if;
   end process;
+
   --------------------------------------------------------------------------
   delay : process(clk)
   begin

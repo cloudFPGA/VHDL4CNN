@@ -34,65 +34,66 @@ architecture rtl of poolH is
   signal buffer_fv        : std_logic_vector(KERNEL_SIZE downto 0);
   signal delay_fv         : std_logic := '0';
   signal tmp_dv           : std_logic := '0';
+  signal x_cmp : unsigned (15 downto 0);
 
 
 
 begin
 
   process (clk)
-    variable x_cmp : unsigned (15 downto 0) := (others => '0');
   begin
-    if (reset_n = '0') then
-      tmp_dv           <= '0';
-      buffer_data      <= (others => (others => '0'));
-      max_value_signal <= (others => '0');
-      --x_cmp            := (others => '0');
-      x_cmp  := to_unsigned(1, 16);
+    if (rising_edge(clk)) then
+      if (reset_n = '0') then
+        tmp_dv           <= '0';
+        buffer_data      <= (others => (others => '0'));
+        max_value_signal <= (others => '0');
+        --x_cmp            := (others => '0');
+        x_cmp  <= to_unsigned(1, 16);
 
-    elsif (rising_edge(clk)) then
-      if (enable = '1') then
-        if (in_fv = '1') then
-          if (in_dv = '1') then
+      elsif (enable = '1') and (in_fv = '1') then
+        if (in_dv = '1') then
             -- Bufferize data --------------------------------------------------------
-            buffer_data(KERNEL_SIZE - 1) <= signed(in_data);
-            BUFFER_LOOP : for i in (KERNEL_SIZE - 1) downto 1 loop
-              buffer_data(i-1) <= buffer_data(i);
-            end loop;
+          buffer_data(KERNEL_SIZE - 1) <= signed(in_data);
+          BUFFER_LOOP : for i in (KERNEL_SIZE - 1) downto 1 loop
+            buffer_data(i-1) <= buffer_data(i);
+          end loop;
 
             -- Compute max -----------------------------------------------------------
-            if (buffer_data(0) > buffer_data(1)) then
-              max_value_signal <= buffer_data(0);
-            else
-              max_value_signal <= buffer_data(1);
-            end if;
-
-            -- H Subsample -------------------------------------------------------------
-            if (x_cmp = to_unsigned(KERNEL_SIZE, 16)) then
-              tmp_dv <= '1';
-              x_cmp  := to_unsigned(1, 16);
-            else
-              tmp_dv <= '0';
-              x_cmp  := x_cmp + to_unsigned(1, 16);
-            end if;
-          --------------------------------------------------------------------------
+          if (buffer_data(0) > buffer_data(1)) then
+            max_value_signal <= buffer_data(0);
           else
-            -- Data is not valid
-            tmp_dv <= '0';
+            max_value_signal <= buffer_data(1);
           end if;
 
+            -- H Subsample -------------------------------------------------------------
+          if (x_cmp = to_unsigned(KERNEL_SIZE, 16)) then
+            tmp_dv <= '1';
+            x_cmp <=  to_unsigned(1, 16);
+          else
+            tmp_dv <= '0';
+            x_cmp  <=  x_cmp + to_unsigned(1, 16);
+          end if;
+          --------------------------------------------------------------------------
         else
-          -- Frame is not valid
-          tmp_dv           <= '0';
-          buffer_data      <= (others => (others => '0'));
+          -- Data is not valid
           max_value_signal <= (others => '0');
-          --x_cmp            := (others => '0');
-          x_cmp  := to_unsigned(1, 16);
+          tmp_dv <= '0';
         end if;
+      --else
+      --  -- Frame is not valid
+      --  tmp_dv           <= '0';
+      --  buffer_data      <= (others => (others => '0'));
+      --  max_value_signal <= (others => '0');
+      --  --x_cmp            := (others => '0');
+      --  x_cmp  := to_unsigned(1, 16);
+      --end if;
       else
-        tmp_dv           <= '0';
+        max_value_signal <= (others => '0');
+        tmp_dv <= '0';
       end if;
     end if;
   end process;
+
   --------------------------------------------------------------------------
   delay : process(clk)
   begin

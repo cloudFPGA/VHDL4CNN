@@ -39,7 +39,7 @@ begin
 
  ta: case NUM_OPERANDS generate
   when 1|2|3|4|5 =>
-    l1: process(clk)
+    l_base_add: process(clk)
       --variable acc: sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
       --variable acc: std_logic_vector(SUM_WIDTH-1 downto 0) := (others => '0');
       variable acc: signed(SUM_WIDTH-1 downto 0) := (others => '0');
@@ -64,7 +64,7 @@ begin
           end if;
         end if;
       end if;
-    end process l1;
+    end process l_base_add;
   --when 3 =>
   --  l3: entity work.CSA3 generic map(PIPELINE=>false)
   --                           port map(CLK=>clk,
@@ -82,24 +82,24 @@ begin
       signal dv_store : std_logic_vector(0 to ((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR) - 1) := (others => '0');
       --signal dv_delay : std_logic_vector(0 to 1);
     begin
-      lln: for K in pip_store'range generate
-        lli_K: if K < (pip_store'length-1) generate
-        ala_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+      lln_first_stage: for K in pip_store'range generate
+        lln_full_K: if K < (pip_store'length-1) generate
+        lln_full_K_inst: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
                                        in_data=>in_data(K*DIVIDER_FACTOR to (K+1)*DIVIDER_FACTOR-1),
                                        out_data=>pip_store(K),
                                        out_valid=>dv_store(K));
-        end generate lli_K;
-        lle_K: if K = (pip_store'length-1) generate
-        ale_K: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+        end generate lln_full_K;
+        lln_remaining_K: if K = (pip_store'length-1) generate
+        lln_remaining_K_inst: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>NUM_OPERANDS-K*DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
                                        in_data=>in_data(K*DIVIDER_FACTOR to in_data'length-1),
                                        out_data=>pip_store(K),
                                        out_valid=>dv_store(K));
-        end generate lle_K;
-      end generate lln;
+        end generate lln_remaining_K;
+      end generate lln_first_stage;
       --delay_dv: process(clk)
       --begin
       --  if (reset_n = '0') then
@@ -111,7 +111,7 @@ begin
       --    end if;
       --  end if;
       --end process;
-      ah: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+      ln_second_stage_inst: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                         NUM_OPERANDS=>((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR),ORDER=>32*(ORDER+1))
                             port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>dv_store(dv_store'length-1),
                                      in_data=>pip_store,out_valid=>out_valid,out_data=>out_data);
