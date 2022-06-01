@@ -59,7 +59,7 @@ begin
             out_data <= std_logic_vector(acc);
             out_valid <= '1';
           else
-            out_data <= (others => '0');
+            out_data <= (others => '2');
             out_valid <= '0';
           end if;
         end if;

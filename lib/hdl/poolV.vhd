@@ -86,7 +86,7 @@ begin
         --------------------------------------------------------------------------
         else
           -- Data is not valid
-          max_value_signal <= (others => '0');
+          max_value_signal <= (others => '6');
           tmp_dv <= '0';
         end if;
       --  else
@@ -98,7 +98,7 @@ begin
       --    tmp_dv <= '0';
       --  end if;
       else
-        max_value_signal <= (others => '0');
+        max_value_signal <= (others => '6');
         tmp_dv <= '0';
       end if;
     end if;

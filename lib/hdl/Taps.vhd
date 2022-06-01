@@ -45,6 +45,7 @@ entity Taps is
     in_data   : in  std_logic_vector (BITWIDTH-1 downto 0);
     taps_data : out pixel_array (0 to KERNEL_SIZE -1);
     out_data  : out std_logic_vector (BITWIDTH-1 downto 0);
+    first_tap_valid : out std_logic;
     out_dv    : out std_logic
     );
 end Taps;
@@ -58,19 +59,21 @@ architecture bhv of Taps is
 begin
 
   process(clk)
-    variable i : integer := 0;
+  --variable i : integer := 0;
   begin
-
-    if (reset_n = '0') then
-      cell      <= (others => (others => '0'));
-      out_data  <= (others => '0');
-      taps_data <= (others => (others => '0'));
-      out_dv <= '0';
-
-    elsif (rising_edge(clk)) then
-      if (enable = '1') then
+    if(rising_edge(clk)) then
+      if (reset_n = '0') then
+        cell      <= (others => (others => '0'));
+        out_data  <= (others => '0');
+        taps_data <= (others => (others => '0'));
+        out_dv <= '0';
+        first_tap_valid <= '0';
+        dv_buffer <= (others => '0');
+      -- enable is only equal in_dv for the first "row", hence we still need both here
+      elsif (enable = '1') and (in_dv = '1') then
         cell(0) <= in_data;
-        dv_buffer(0) <= in_dv;
+        -- dv_buffer(0) <= in_dv;
+        dv_buffer(0) <= '1';
         for i in 1 to (TAPS_WIDTH-1) loop
           cell(i) <= cell(i-1);
           dv_buffer(i) <= dv_buffer(i-1);
@@ -78,8 +81,12 @@ begin
         taps_data <= cell(0 to KERNEL_SIZE-1);
         out_data  <= cell(TAPS_WIDTH-1);
         out_dv <= dv_buffer(TAPS_WIDTH-1);
+        first_tap_valid <= dv_buffer(0);
       else
         out_dv <= '0';
+        first_tap_valid <= '0';
+        out_data  <= (others => '3');
+        taps_data <= (others => (others => '3'));
       end if;
     end if;
   end process;

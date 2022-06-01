@@ -83,7 +83,7 @@ architecture rtl of neighExtractor is
   signal pixel_out : pixel_array(0 to KERNEL_SIZE-1);
   signal dv_out_vec : std_logic_vector(0 to KERNEL_SIZE-1);
   signal tmp_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
-  signal all_valid : std_logic;
+  -- signal all_valid : std_logic;
   signal s_valid   : std_logic;
   signal buffer_fv : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal tmp_dv    : std_logic;
@@ -91,6 +91,7 @@ architecture rtl of neighExtractor is
   signal delay_dv  : std_logic;
   signal delay_fv  : std_logic;
   signal taps_valid_data : std_logic;
+  signal first_tap_valid: std_logic;
 
   constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH))));
   signal x_cmp       : unsigned (WIDTH_COUNTER-1 downto 0); --:= (others => '0');
@@ -113,6 +114,7 @@ architecture rtl of neighExtractor is
       in_data   : in  std_logic_vector (BITWIDTH-1 downto 0);
       taps_data : out pixel_array (0 to KERNEL_SIZE -1);
       out_data  : out std_logic_vector (BITWIDTH-1 downto 0);
+      first_tap_valid : out std_logic;
       out_dv    : out std_logic
       );
   end component;
@@ -136,8 +138,11 @@ architecture rtl of neighExtractor is
 begin
 
   -- All valid : Logic and
-  all_valid <= in_dv and in_fv;
-  s_valid   <= all_valid and enable;
+  -- all_valid <= in_dv and in_fv;
+  -- after some consideration: hold taps on dv=0 sounds good
+  --s_valid   <= all_valid and enable;
+  -- TODO
+  s_valid   <= in_fv and enable and in_dv;
   ----------------------------------------------------
   -- Instantiates taps
   ----------------------------------------------------
@@ -160,6 +165,7 @@ begin
           in_data   => in_data,
           taps_data => tmp_data(0 to KERNEL_SIZE-1),
           out_data  => pixel_out(0),
+          first_tap_valid => first_tap_valid,
           out_dv => dv_out_vec(0)
           );
     end generate gen_1;
@@ -180,6 +186,7 @@ begin
           in_data   => pixel_out(i-1),
           taps_data => tmp_data(i * KERNEL_SIZE to KERNEL_SIZE*(i+1)-1),
           out_data  => pixel_out(i),
+          first_tap_valid => open,
           out_dv => dv_out_vec(i)
           );
     end generate gen_i;
@@ -200,6 +207,7 @@ begin
           in_data   => pixel_out(i-1),
           taps_data => tmp_data((KERNEL_SIZE-1) * KERNEL_SIZE to KERNEL_SIZE*KERNEL_SIZE - 1),
           out_data  => open,
+          first_tap_valid => open,
           out_dv => taps_valid_data
           );
     end generate gen_last;
@@ -218,78 +226,73 @@ begin
         x_cmp  <=  (others => '0');
         y_cmp  <=  (others => '0');
         tmp_dv <= '0';
-      --tmp_fv <= '0';
-
+        delay_fv <= '0';
       elsif(enable = '1') and (in_fv = '1') then
-
-        out_data <= tmp_data;
-        -- delay_fv <= in_fv and taps_valid_data;
-        -- TODO
-        delay_fv <= in_fv;
-
-        if (in_fv = '1') and (taps_valid_data = '1') then
-          if(in_dv = '1') then
-            if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-              if (x_cmp = to_unsigned (IMAGE_WIDTH, WIDTH_COUNTER)) then
-                tmp_dv <= '0';
-                x_cmp  <=  (others => '0');
-                y_cmp  <=  (others => '0');
+        delay_fv <= '1';
+        -- askin both means: we have a valid input and output
+        -- if (taps_valid_data = '1') and (in_dv = '1') then
+        if (taps_valid_data = '1') and (first_tap_valid = '1') then
+          if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+            if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+              tmp_dv <= '0';
+              x_cmp  <=  (others => '0');
+              y_cmp  <=  (others => '0');
               -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
               --     tmp_dv <='0';
               --     x_cmp := x_cmp + to_unsigned(1,WIDTH_COUNTER);
-              else
-                tmp_dv <= '1';
-                x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-              end if;
-            elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-              --tmp_fv <= '0';
-              tmp_dv <= '0';
-              if (x_cmp = to_unsigned (IMAGE_WIDTH, WIDTH_COUNTER)) then
-                x_cmp <=  (others => '0');
-                y_cmp <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-              else
-                x_cmp <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-              end if;
             else
-              -- Start of frame
-              if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
-                tmp_dv <= '1';
-                x_cmp  <=  (others => '0');
-                y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-              elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
-                tmp_dv <= '0';
-                x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-              else
-                --tmp_fv <= '1';
-                tmp_dv <= '1';
-                x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-              end if;
-
+              tmp_dv <= '1';
+              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+            end if;
+          elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
+              --tmp_fv <= '0';
+            tmp_dv <= '0';
+            if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+              x_cmp <=  (others => '0');
+              y_cmp <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+            else
+              x_cmp <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
             end if;
           else
-            tmp_dv <= '0';
+              -- Start of frame
+            if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
+              tmp_dv <= '1';
+              x_cmp  <=  (others => '0');
+              y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+            elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
+              tmp_dv <= '0';
+              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+            else
+                --tmp_fv <= '1';
+              tmp_dv <= '1';
+              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+            end if;
           end if;
-
-      --  -- when fv = 0
-      --  else
-      --    x_cmp  := (others => '0');
-      --    y_cmp  := (others => '0');
-      --    tmp_dv <= '0';
-      --    --tmp_fv <= '0';
-      --  end if;
+        -- else
+        --   tmp_dv <= '0';
+        -- end if;
+        --  -- when fv = 0
+        --  else
+        --    x_cmp  := (others => '0');
+        --    y_cmp  := (others => '0');
+        --    tmp_dv <= '0';
+        --    --tmp_fv <= '0';
+        --  end if;
         else
           tmp_dv <= '0';
         end if;
-        -- When enable = 0
+      -- When enable = 0
       else
-        x_cmp  <=  (others => '0');
-        y_cmp  <=  (others => '0');
+        -- x_cmp  <=  (others => '0');
+        -- y_cmp  <=  (others => '0');
         tmp_dv <= '0';
-        --tmp_fv <= '0';
+        delay_fv <= '0';
+      --tmp_fv <= '0';
       end if;
     end if;
   end process;
 
+  out_data <= tmp_data;
   out_dv <= tmp_dv;
   out_fv <= delay_fv;
 end architecture;
