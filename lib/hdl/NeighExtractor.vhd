@@ -231,7 +231,8 @@ begin
         delay_fv <= '1';
         -- askin both means: we have a valid input and output
         -- if (taps_valid_data = '1') and (in_dv = '1') then
-        if (taps_valid_data = '1') and (first_tap_valid = '1') then
+        --if (taps_valid_data = '1') and (first_tap_valid = '1') then
+        if (in_dv = '1') then
           if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
             if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
               tmp_dv <= '0';
