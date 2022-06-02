@@ -90,6 +90,8 @@ architecture rtl of neighExtractor is
   --signal tmp_fv    : std_logic;
   signal delay_dv  : std_logic;
   signal delay_fv  : std_logic;
+  signal reset_taps_n : std_logic;
+  signal reset_combined_n: std_logic;
   signal taps_valid_data : std_logic;
   signal first_tap_valid: std_logic;
 
@@ -143,6 +145,7 @@ begin
   --s_valid   <= all_valid and enable;
   -- TODO
   s_valid   <= in_fv and enable and in_dv;
+  reset_combined_n <= reset_n and reset_taps_n;
   ----------------------------------------------------
   -- Instantiates taps
   ----------------------------------------------------
@@ -159,7 +162,7 @@ begin
           )
         port map(
           clk       => clk,
-          reset_n   => reset_n,
+          reset_n   => reset_combined_n,
           enable    => s_valid,
           in_dv => in_dv,
           in_data   => in_data,
@@ -180,7 +183,7 @@ begin
           )
         port map(
           clk       => clk,
-          reset_n   => reset_n,
+          reset_n   => reset_combined_n,
           enable    => s_valid,
           in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
@@ -201,7 +204,7 @@ begin
           )
         port map(
           clk       => clk,
-          reset_n   => reset_n,
+          reset_n   => reset_combined_n,
           enable    => s_valid,
           in_dv => dv_out_vec(i-1),
           in_data   => pixel_out(i-1),
@@ -222,20 +225,25 @@ begin
   dv_proc : process(clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') then
+      if (reset_n = '0') or (in_fv = '0') then
         x_cmp  <=  (others => '0');
         y_cmp  <=  (others => '0');
         tmp_dv <= '0';
         delay_fv <= '0';
+        reset_taps_n <= '0';
       elsif(enable = '1') and (in_fv = '1') then
+        reset_taps_n <= '1';
         delay_fv <= '1';
-        -- askin both means: we have a valid input and output
+        -- asking both means: we have a valid input and output
         -- if (taps_valid_data = '1') and (in_dv = '1') then
         --if (taps_valid_data = '1') and (first_tap_valid = '1') then
         if (in_dv = '1') then
           if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
             if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
               tmp_dv <= '0';
+              -- TODO
+              --delay_fv <= '0'; -- to reset downstream components?
+              reset_taps_n <= '1';
               x_cmp  <=  (others => '0');
               y_cmp  <=  (others => '0');
               -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
@@ -280,6 +288,7 @@ begin
         --    --tmp_fv <= '0';
         --  end if;
         else
+          reset_taps_n <= '0';
           tmp_dv <= '0';
         end if;
       -- When enable = 0
@@ -288,6 +297,7 @@ begin
         -- y_cmp  <=  (others => '0');
         tmp_dv <= '0';
         delay_fv <= '0';
+        reset_taps_n <= '0';
       --tmp_fv <= '0';
       end if;
     end if;

@@ -44,7 +44,7 @@ begin
   process (clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') then
+      if (reset_n = '0') or (in_fv = '0') then
         tmp_dv           <= '0';
         buffer_data      <= (others => (others => '0'));
         buffer_line      <= (others => (others => '0'));
@@ -75,10 +75,12 @@ begin
           -- V Subsample -------------------------------------------------------------
           if (x_cmp < to_unsigned(IMAGE_WIDTH+1, 16)) then
             tmp_dv <= '0';
+          max_value_signal <= to_signed(63, BITWIDTH);
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
           elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
             tmp_dv <= '0';
             x_cmp  <=  to_unsigned(2, 16);
+          max_value_signal <= to_signed(65, BITWIDTH);
           else
             tmp_dv <= '1';
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
@@ -86,7 +88,9 @@ begin
         --------------------------------------------------------------------------
         else
           -- Data is not valid
-          max_value_signal <= (others => '6');
+          -- max_value_signal <= (others => '0');
+          --max_value_signal <= to_signed(45, BITWIDTH);
+          max_value_signal <= signed(in_data);
           tmp_dv <= '0';
         end if;
       --  else
@@ -98,7 +102,8 @@ begin
       --    tmp_dv <= '0';
       --  end if;
       else
-        max_value_signal <= (others => '6');
+        -- max_value_signal <= (others => '0');
+        max_value_signal <= to_signed(22, BITWIDTH);
         tmp_dv <= '0';
       end if;
     end if;

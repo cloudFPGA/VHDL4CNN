@@ -60,7 +60,7 @@ begin
           end loop;
           out_valid <= '1';
         else
-          out_data <= (others => (others => '9'));
+          out_data <= (others => (others => '0'));
           out_valid <= '0';
         end if;
     --out_valid <= in_valid;

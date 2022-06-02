@@ -135,9 +135,14 @@ begin
           out_data <= std_logic_vector(signed(tmp_data) + signed(BIAS_VALUE));
           out_valid <= '1';
         else
-          out_data <= (others => '1');
+          --out_data <= (others => '0');
+          out_data <= std_logic_vector(to_unsigned(112, SUM_WIDTH));
           out_valid <= '0';
         end if;
+      else
+        --out_data <= (others => '0');
+        out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
+        out_valid <= '0';
       end if;
     end if;
   end process;

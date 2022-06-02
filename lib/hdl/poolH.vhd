@@ -43,7 +43,7 @@ begin
   process (clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') then
+      if (reset_n = '0') or (in_fv = '0') then
         tmp_dv           <= '0';
         buffer_data      <= (others => (others => '0'));
         max_value_signal <= (others => '0');
@@ -76,7 +76,9 @@ begin
           --------------------------------------------------------------------------
         else
           -- Data is not valid
-          max_value_signal <= (others => '5');
+          --max_value_signal <= (others => '0');
+          --max_value_signal <= to_signed(11, BITWIDTH);
+          max_value_signal <= signed(in_data);
           tmp_dv <= '0';
         end if;
       --else
@@ -88,7 +90,8 @@ begin
       --  x_cmp  := to_unsigned(1, 16);
       --end if;
       else
-        max_value_signal <= (others => '5');
+        --max_value_signal <= (others => '0');
+        max_value_signal <= to_signed(9, BITWIDTH);
         tmp_dv <= '0';
       end if;
     end if;

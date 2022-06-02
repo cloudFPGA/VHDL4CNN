@@ -37,7 +37,7 @@ architecture rtl of RADD is
 
 begin
 
- ta: case NUM_OPERANDS generate
+  ta: case NUM_OPERANDS generate
   when 1|2|3|4|5 =>
     l_base_add: process(clk)
       --variable acc: sum_array (0 to NUM_OPERANDS - 1) := (others => (others => '0'));
@@ -59,9 +59,14 @@ begin
             out_data <= std_logic_vector(acc);
             out_valid <= '1';
           else
-            out_data <= (others => '2');
+            out_data <= (others => '0');
+            out_data <= std_logic_vector(to_unsigned(101, SUM_WIDTH));
             out_valid <= '0';
           end if;
+        else
+          -- out_data <= (others => '0');
+          out_data <= std_logic_vector(to_unsigned(100, SUM_WIDTH));
+          out_valid <= '0';
         end if;
       end if;
     end process l_base_add;

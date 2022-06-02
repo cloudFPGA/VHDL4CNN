@@ -85,8 +85,8 @@ begin
       else
         out_dv <= '0';
         first_tap_valid <= '0';
-        out_data  <= (others => '3');
-        taps_data <= (others => (others => '3'));
+        out_data  <= (others => '0');
+        taps_data <= (others => (others => '0'));
       end if;
     end if;
   end process;

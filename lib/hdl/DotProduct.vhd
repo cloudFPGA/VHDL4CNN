@@ -96,7 +96,7 @@ architecture rtl of DotProduct is
      port map (
        clk       => clk,
        reset_n   => reset_n,
-       enable    => enable,
+       enable    => (enable and in_fv),
        in_data   => p_prod_data,
        in_valid  => p_prod_valid,
        out_data  => out_data,
