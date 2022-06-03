@@ -53,19 +53,21 @@ begin
       if(reset_n = '0') then
         out_data  <= (others => (others => '0'));
         out_valid <= '0';
-      elsif (enable = '1') then
-        if (in_valid = '1') then
+       -- elsif (enable = '1') then
+      elsif (enable = '1') and (in_valid = '1') then
+        --if (in_valid = '1') then
           mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
             out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
           end loop;
           out_valid <= '1';
-        else
-          out_data <= (others => (others => '0'));
-          out_valid <= '0';
-        end if;
+        --else
+        --  out_data <= (others => (others => '0'));
+        --  out_valid <= '0';
+        --end if;
     --out_valid <= in_valid;
       else
-        out_data <= (others => (others => '0'));
+        -- out_data <= (others => (others => '0'));
+        out_data <= (others => std_logic_vector(to_unsigned(201, out_data(0)'length)));
         out_valid <= '0';
       end if;
     end if;

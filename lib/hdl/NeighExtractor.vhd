@@ -221,6 +221,7 @@ begin
   -- Manage out_dv and out_fv
   --------------------------------------------------------------------------
   -- Embrace your self : Managing the image borders is quite a pain
+  -- > no actually not...
 
   dv_proc : process(clk)
   begin
@@ -238,44 +239,63 @@ begin
         -- if (taps_valid_data = '1') and (in_dv = '1') then
         --if (taps_valid_data = '1') and (first_tap_valid = '1') then
         if (in_dv = '1') then
-          if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-            if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-              tmp_dv <= '0';
+          -----------------------------------------------------------------
+          -- if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+          --   if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+          --     tmp_dv <= '0';
+          --     -- TODO
+          --     --delay_fv <= '0'; -- to reset downstream components?
+          --     reset_taps_n <= '1';
+          --     x_cmp  <=  (others => '0');
+          --     y_cmp  <=  (others => '0');
+          --     -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
+          --     --     tmp_dv <='0';
+          --     --     x_cmp := x_cmp + to_unsigned(1,WIDTH_COUNTER);
+          --   else
+          --     tmp_dv <= '1';
+          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   end if;
+          -- elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
+          --     --tmp_fv <= '0';
+          --   tmp_dv <= '0';
+          --   if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+          --     x_cmp <=  (others => '0');
+          --     y_cmp <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   else
+          --     x_cmp <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   end if;
+          -- else
+          --     -- Start of frame
+          --   if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
+          --     tmp_dv <= '1';
+          --     x_cmp  <=  (others => '0');
+          --     y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
+          --     tmp_dv <= '0';
+          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   else
+          --       --tmp_fv <= '1';
+          --     tmp_dv <= '1';
+          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+          --   end if;
+          -- end if;
+          -----------------------------------------------------------------
+          tmp_dv <= '0';
+          x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
+          if ( x_cmp >= to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) and ( x_cmp <= to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp >= to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
+              tmp_dv <= '1';
+          end if;
+          if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
+            x_cmp  <=  (others => '0');
+            y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+          end if;
+          if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) and (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+            --tmp_dv <= '0';  NO, is still valid
               -- TODO
               --delay_fv <= '0'; -- to reset downstream components?
-              reset_taps_n <= '1';
-              x_cmp  <=  (others => '0');
-              y_cmp  <=  (others => '0');
-              -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
-              --     tmp_dv <='0';
-              --     x_cmp := x_cmp + to_unsigned(1,WIDTH_COUNTER);
-            else
-              tmp_dv <= '1';
-              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-            end if;
-          elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-              --tmp_fv <= '0';
-            tmp_dv <= '0';
-            if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-              x_cmp <=  (others => '0');
-              y_cmp <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-            else
-              x_cmp <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-            end if;
-          else
-              -- Start of frame
-            if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
-              tmp_dv <= '1';
-              x_cmp  <=  (others => '0');
-              y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-            elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
-              tmp_dv <= '0';
-              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-            else
-                --tmp_fv <= '1';
-              tmp_dv <= '1';
-              x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-            end if;
+            reset_taps_n <= '0';
+            x_cmp  <=  (others => '0');
+            y_cmp  <=  (others => '0');
           end if;
         -- else
         --   tmp_dv <= '0';

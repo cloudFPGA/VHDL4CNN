@@ -48,8 +48,9 @@ begin
         if (reset_n = '0') then
           out_valid <= '0';
           out_data <= (others => '0');
-        elsif (enable = '1') then
-          if (in_valid = '1') then
+        -- elsif (enable = '1') then
+        elsif (enable = '1') and (in_valid = '1') then
+          -- if (in_valid = '1') then
             --out_valid <= in_valid;
             --acc   := (others => '0');
             acc   := to_signed(0, SUM_WIDTH);
@@ -58,11 +59,11 @@ begin
             end loop acc_loop;
             out_data <= std_logic_vector(acc);
             out_valid <= '1';
-          else
-            out_data <= (others => '0');
-            out_data <= std_logic_vector(to_unsigned(101, SUM_WIDTH));
-            out_valid <= '0';
-          end if;
+          --else
+          --  --out_data <= (others => '0');
+          --  out_data <= std_logic_vector(to_unsigned(101, SUM_WIDTH));
+          --  out_valid <= '0';
+          --end if;
         else
           -- out_data <= (others => '0');
           out_data <= std_logic_vector(to_unsigned(100, SUM_WIDTH));

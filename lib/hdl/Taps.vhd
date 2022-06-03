@@ -86,7 +86,8 @@ begin
         out_dv <= '0';
         first_tap_valid <= '0';
         out_data  <= (others => '0');
-        taps_data <= (others => (others => '0'));
+        -- taps_data <= (others => (others => '0'));
+        taps_data <= (others => std_logic_vector(to_unsigned(221, taps_data(0)'length)));
       end if;
     end if;
   end process;
