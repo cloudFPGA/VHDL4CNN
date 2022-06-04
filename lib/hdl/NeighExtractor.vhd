@@ -280,23 +280,31 @@ begin
           --   end if;
           -- end if;
           -----------------------------------------------------------------
-          tmp_dv <= '0';
-          x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
           if ( x_cmp >= to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) and ( x_cmp <= to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp >= to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-              tmp_dv <= '1';
+            tmp_dv <= '1';
+          else
+            tmp_dv <= '0';
           end if;
           if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
             x_cmp  <=  (others => '0');
-            y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-          end if;
-          if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) and (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+            if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+              reset_taps_n <= '0';
             --tmp_dv <= '0';  NO, is still valid
-              -- TODO
-              --delay_fv <= '0'; -- to reset downstream components?
-            reset_taps_n <= '0';
-            x_cmp  <=  (others => '0');
-            y_cmp  <=  (others => '0');
+              y_cmp  <=  (others => '0');
+            else
+              y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
+            end if;
+          else
+            x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
           end if;
+          --if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) and (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+          --  --tmp_dv <= '0';  NO, is still valid
+          --    -- TODO
+          --    --delay_fv <= '0'; -- to reset downstream components?
+          --  reset_taps_n <= '0';
+          --  x_cmp  <=  (others => '0');
+          --  y_cmp  <=  (others => '0');
+          --end if;
         -- else
         --   tmp_dv <= '0';
         -- end if;
