@@ -6,6 +6,7 @@
 -- Author     : K. Abdelouahab
 -- Company    : Institut Pascal
 -- Last update: 2018-08-23
+-- == COMPLETELY REWRITTEN BY NGL ==
 -------------------------------------------------------------------------------------------------------------
 -- Description: Extracts a generic neighborhood from serial in_data
 --
@@ -83,6 +84,7 @@ architecture rtl of neighExtractor is
 
   --signal kernel_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
   signal pixel_buffer : pixel_matrix(0 to KERNEL_SIZE - 1);
+  signal delay_valid: std_logic;
 
   constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH)))) + 2;
   signal x_cmp       : unsigned (WIDTH_COUNTER-1 downto 0); --:= (others => '0');
@@ -99,25 +101,28 @@ begin
         x_cmp  <=  (others => '0');
         y_cmp  <=  (others => '0');
         out_dv <= '0';
+        delay_valid <= '0';
         out_fv <= '0';
         --reset_taps_n <= '0';
         out_data <= (others => (others => '0'));
         pixel_buffer <= (others => (others => (others => '0')));
-        --kernel_data <= (others => (others => '0'));
+      --kernel_data <= (others => (others => '0'));
       elsif(enable = '1') and (in_fv = '1') then
         --reset_taps_n <= '1';
         out_fv <= '1';
+        out_dv <= delay_valid;
+
         if (in_dv = '1') then
           if ( x_cmp >= to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) and ( x_cmp <= to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp >= to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-            out_dv <= '1';
+            delay_valid <= '1';
           else
-            out_dv <= '0';
+            delay_valid <= '0';
           end if;
           if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
             x_cmp  <=  (others => '0');
             if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
               --reset_taps_n <= '0';
-            --out_dv <= '0';  NO, is still valid
+              --delay_valid <= '0';  NO, is still valid
               y_cmp  <=  (others => '0');
             else
               y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
@@ -125,14 +130,14 @@ begin
           else
             x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
           end if;
-            --if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-            --  -- reset buffer
-            --  pixel_buffer <= (others => (others => (others => '0')));
-            --  --kernel_data <= (others => (others => '0'));
-            --else
-            --    -- advance buffer
-            --end if;
-            -- advance buffer
+          --if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+          --  -- reset buffer
+          --  pixel_buffer <= (others => (others => (others => '0')));
+          --  --kernel_data <= (others => (others => '0'));
+          --else
+          --    -- advance buffer
+          --end if;
+          -- advance buffer
           pixel_buffer(0)(0) <= in_data;
           first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
             pixel_buffer(0)(j) <= pixel_buffer(0)(j-1);
@@ -147,14 +152,17 @@ begin
           kernel_loop: for k in 0 to (KERNEL_SIZE-1) loop
             out_data(k*KERNEL_SIZE to (k+1)*KERNEL_SIZE - 1) <= pixel_buffer(k)(0 to KERNEL_SIZE - 1);
           end loop kernel_loop;
+          -- unused elements of last row will be removed anyhow by synthesis
         else
           --reset_taps_n <= '0';
-          out_dv <= '0';
+          delay_valid <= '0';
           out_data <= (others => std_logic_vector(to_unsigned(42, out_data(0)'length)));
         end if;
+
       -- When enable = 0
       else
-        out_dv <= '0';
+        out_dv <= delay_valid;
+        delay_valid <= '0';
         out_fv <= '0';
         --reset_taps_n <= '0';
         out_data <= (others => std_logic_vector(to_unsigned(43, out_data(0)'length)));
@@ -163,3 +171,5 @@ begin
   end process;
 
 end architecture;
+
+

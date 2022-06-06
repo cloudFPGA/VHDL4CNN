@@ -114,6 +114,7 @@ begin
   end process;
 
   out_data <= std_logic_vector(max_value_signal);
+  --out_data <= std_logic_vector(resize(signed(max_value_signal), BITWIDTH));
   out_fv   <= delay_fv;
   out_dv   <= tmp_dv;
 end architecture;

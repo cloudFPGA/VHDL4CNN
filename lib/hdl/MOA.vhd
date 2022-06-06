@@ -1,5 +1,6 @@
 -- Design of a Multi-Operand-Adder block
 -- This is a naive implementation with binary adder trees
+-- == COMPLETELY REWRITTEN BY NGL ==
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -29,13 +30,12 @@ end MOA;
 architecture rtl of MOA is
 -- Implementation of Multi Operand Adder with Adder trees
 
------------------------------------
--- Removing MOA to Evaluate FMax --
------------------------------------
-begin
-out_valid <= in_valid;
-out_data  <= "00000000" & in_data(0);
--- end architecture;
+-------------------------------------
+---- Removing MOA to Evaluate FMax --
+-------------------------------------
+--begin
+--out_valid <= in_valid;
+--out_data  <= "00000000" & in_data(0);
 
 
 ---------------------------------
@@ -104,55 +104,57 @@ out_data  <= "00000000" & in_data(0);
 --     end if;
 --   end process;
 
--- -------------------------------
--- -- recursive implementation
--- -- fixes original haddoc2 implementation
--- -------------------------------
--- 
---     signal tmp_data: std_logic_vector (SUM_WIDTH-1 downto 0);
---     signal tmp_valid: std_logic;
---     signal array_cast : sum_array(NUM_OPERANDS-1 downto 0);
--- begin
--- 
---   tc: for K in array_cast'range generate
---     -- array_cast(K) <= (in_data(K)'length-1  downto 0 => in_data(K), others => '0');
---     array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH), array_cast(K)'length));
---   end generate tc;
--- 
---   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
---                                       NUM_OPERANDS=>NUM_OPERANDS,ORDER=>0)
---   port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
---            in_data=>array_cast,
---            out_data=>tmp_data, out_valid=>tmp_valid);
--- 
---   process(clk)
---   begin
---     if (rising_edge(clk)) then
---       if (reset_n = '0') then
---         out_data <= (others => '0');
---         out_valid <= '0';
---       -- elsif (enable = '1') then
---       elsif (enable = '1') and (tmp_valid = '1') then
---         -- if (tmp_valid='1') then
---           out_data <= std_logic_vector(signed(tmp_data) + signed(BIAS_VALUE));
---           out_valid <= '1';
---         --else
---         --  --out_data <= (others => '0');
---         --  out_data <= std_logic_vector(to_unsigned(112, SUM_WIDTH));
---         --  out_valid <= '0';
---         --end if;
---       else
---         --out_data <= (others => '0');
---         --out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
---         --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
---         --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
---         --end loop;
---         out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
---         out_valid <= '0';
---       end if;
---     end if;
---   end process;
--- 
+-------------------------------
+-- recursive implementation
+-- fixes original haddoc2 implementation
+-------------------------------
+
+    signal tmp_data: std_logic_vector (SUM_WIDTH-1 downto 0);
+    signal tmp_valid: std_logic;
+    signal array_cast : sum_array(NUM_OPERANDS-1 downto 0);
+begin
+
+  tc: for K in array_cast'range generate
+    -- array_cast(K) <= (in_data(K)'length-1  downto 0 => in_data(K), others => '0');
+    --array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH), array_cast(K)'length));
+    -- TODO: make generic, but -1 because it is 7*7 scale, not 8*8; (and not -2, because one 7 is already accounted for)
+    array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH-1), array_cast(K)'length));
+  end generate tc;
+
+  rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
+                                      NUM_OPERANDS=>NUM_OPERANDS,ORDER=>0)
+  port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
+           in_data=>array_cast,
+           out_data=>tmp_data, out_valid=>tmp_valid);
+
+  process(clk)
+  begin
+    if (rising_edge(clk)) then
+      if (reset_n = '0') then
+        out_data <= (others => '0');
+        out_valid <= '0';
+      -- elsif (enable = '1') then
+      elsif (enable = '1') and (tmp_valid = '1') then
+        -- if (tmp_valid='1') then
+          out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
+          out_valid <= '1';
+        --else
+        --  --out_data <= (others => '0');
+        --  out_data <= std_logic_vector(to_unsigned(112, SUM_WIDTH));
+        --  out_valid <= '0';
+        --end if;
+      else
+        --out_data <= (others => '0');
+        --out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
+        --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
+        --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+        --end loop;
+        out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
+        out_valid <= '0';
+      end if;
+    end if;
+  end process;
+
 
 
 

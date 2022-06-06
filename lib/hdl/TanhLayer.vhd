@@ -23,5 +23,7 @@ begin
   --sum_s    <= signed(in_data);
   out_data <= std_logic_vector(to_signed(-V2, BITWIDTH)) when (signed(in_data) < to_signed(-T2, SUM_WIDTH)) else
               std_logic_vector(to_signed( V2, BITWIDTH)) when (signed(in_data) > to_signed( T2, SUM_WIDTH)) else
-              std_logic_vector(SHIFT_RIGHT(signed(in_data), 2*BITWIDTH)(BITWIDTH-1 downto 0));
+              --std_logic_vector(SHIFT_RIGHT(signed(in_data), 2*BITWIDTH)(BITWIDTH-1 downto 0));
+              std_logic_vector(resize(signed(in_data), BITWIDTH));
+
 end architecture;

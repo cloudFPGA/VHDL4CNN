@@ -32,20 +32,28 @@ end entity;
 
 architecture bhv of DynInputLayer is
 begin
-  process(clk)
-  begin
-    if (reset_n = '0') then
-      out_data <= (others => (others => '0'));
-    else
-      if (enable = '1') then
-        inDemux : for i in 0 to NB_OUT_FLOWS-1 loop
-          out_data(i) <= '0' & in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH);
-        end loop inDemux;
-      end if;
-      out_dv <= in_dv;
-      out_fv <= in_fv;
-    end if;
-  end process;
+  -- process(clk)
+  -- begin
+  --   if (reset_n = '0') then
+  --     out_data <= (others => (others => '0'));
+  --   else
+  --     if (enable = '1') then
+  --       inDemux : for i in 0 to NB_OUT_FLOWS-1 loop
+  --         out_data(i) <= '0' & in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH);
+  --       end loop inDemux;
+  --     end if;
+  --     out_dv <= in_dv;
+  --     out_fv <= in_fv;
+  --   end if;
+  -- end process;
+
+  input_split: for i in 0 to NB_OUT_FLOWS-1 generate
+    out_data(i) <= std_logic_vector(resize(signed(in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH)), out_data(i)'length));
+  end generate input_split;
+
+  out_dv <= in_dv;
+  out_fv <= in_fv;
+
 end bhv;
 
 

@@ -31,9 +31,11 @@ architecture Bhv of ReluLayer is
 begin
 
   --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), SCALE_SHIFT));
+  -- TODO: clean up, scale back happens before adder tree (MOA)
   scaled_back_data <= in_data;
   out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
               std_logic_vector(to_signed(SCALE_FACTOR, BITWIDTH)) when (signed(scaled_back_data) > to_signed(SCALE_FACTOR, SUM_WIDTH)) else
-              scaled_back_data(BITWIDTH-1 downto 0);
+              --scaled_back_data(BITWIDTH-1 downto 0);
+              std_logic_vector(resize(signed(scaled_back_data), BITWIDTH));
 
 end architecture;
