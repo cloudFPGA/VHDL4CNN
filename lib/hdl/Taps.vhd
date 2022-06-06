@@ -81,7 +81,7 @@ begin
         taps_data <= cell(0 to KERNEL_SIZE-1);
         out_data  <= cell(TAPS_WIDTH-1);
         out_dv <= dv_buffer(TAPS_WIDTH-1);
-        first_tap_valid <= dv_buffer(0);
+        first_tap_valid <= '1';
       else
         out_dv <= '0';
         first_tap_valid <= '0';

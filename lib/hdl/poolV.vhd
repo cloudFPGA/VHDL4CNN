@@ -75,12 +75,14 @@ begin
           -- V Subsample -------------------------------------------------------------
           if (x_cmp < to_unsigned(IMAGE_WIDTH+1, 16)) then
             tmp_dv <= '0';
-          max_value_signal <= to_signed(63, BITWIDTH);
+            --max_value_signal <= to_signed(63, BITWIDTH);
+            max_value_signal <= signed(in_data);
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
           elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
             tmp_dv <= '0';
             x_cmp  <=  to_unsigned(2, 16);
-          max_value_signal <= to_signed(65, BITWIDTH);
+            --max_value_signal <= to_signed(65, BITWIDTH);
+            max_value_signal <= signed(in_data);
           else
             tmp_dv <= '1';
             x_cmp  <=  x_cmp + to_unsigned(1, 16);

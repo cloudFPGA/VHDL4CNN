@@ -34,8 +34,8 @@ use work.cnn_types.all;
 entity ConvLayer is
   generic(
     BITWIDTH   : integer;
-    IMAGE_WIDTH  : integer;
     SUM_WIDTH    : integer;
+    IMAGE_WIDTH  : integer;
     KERNEL_SIZE  : integer;
     NB_IN_FLOWS  : integer;
     NB_OUT_FLOWS : integer;

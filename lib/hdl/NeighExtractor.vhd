@@ -79,149 +79,18 @@ end neighExtractor;
 
 architecture rtl of neighExtractor is
 
-  -- signals
-  signal pixel_out : pixel_array(0 to KERNEL_SIZE-1);
-  signal dv_out_vec : std_logic_vector(0 to KERNEL_SIZE-1);
-  signal tmp_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
-  -- signal all_valid : std_logic;
-  signal s_valid   : std_logic;
-  signal buffer_fv : std_logic_vector(KERNEL_SIZE-1 downto 0);
-  signal tmp_dv    : std_logic;
-  --signal tmp_fv    : std_logic;
-  signal delay_dv  : std_logic;
-  signal delay_fv  : std_logic;
-  signal reset_taps_n : std_logic;
-  signal reset_combined_n: std_logic;
-  signal taps_valid_data : std_logic;
-  signal first_tap_valid: std_logic;
+  type pixel_matrix is array (integer range <>) of pixel_array(0 to IMAGE_WIDTH-1);
 
-  constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH))));
+  --signal kernel_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
+  signal pixel_buffer : pixel_matrix(0 to KERNEL_SIZE - 1);
+
+  constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH)))) + 2;
   signal x_cmp       : unsigned (WIDTH_COUNTER-1 downto 0); --:= (others => '0');
   signal y_cmp       : unsigned (WIDTH_COUNTER-1 downto 0); -- := (others => '0');
 
 
-  -- components
-  component taps
-    generic (
-      BITWIDTH  : integer;
-      TAPS_WIDTH  : integer;
-      KERNEL_SIZE : integer
-      );
-
-    port (
-      clk       : in  std_logic;
-      reset_n   : in  std_logic;
-      enable    : in  std_logic;
-      in_dv     : in std_logic;
-      in_data   : in  std_logic_vector (BITWIDTH-1 downto 0);
-      taps_data : out pixel_array (0 to KERNEL_SIZE -1);
-      out_data  : out std_logic_vector (BITWIDTH-1 downto 0);
-      first_tap_valid : out std_logic;
-      out_dv    : out std_logic
-      );
-  end component;
-
-
-   --component bit_taps
-   --  generic (
-   --    TAPS_WIDTH : integer
-   --    );
-
-   --  port (
-   --    clk      : in  std_logic;
-   --    reset_n  : in  std_logic;
-   --    enable   : in  std_logic;
-   --    in_data  : in  std_logic;
-   --    out_data : out std_logic
-   --    );
-   --end component;
-
-
 begin
 
-  -- All valid : Logic and
-  -- all_valid <= in_dv and in_fv;
-  -- after some consideration: hold taps on dv=0 sounds good
-  --s_valid   <= all_valid and enable;
-  -- TODO
-  s_valid   <= in_fv and enable and in_dv;
-  reset_combined_n <= reset_n and reset_taps_n;
-  ----------------------------------------------------
-  -- Instantiates taps
-  ----------------------------------------------------
-
-
-  taps_inst : for i in 0 to KERNEL_SIZE-1 generate
-    -- First line
-    gen_1 : if i = 0 generate
-      gen1_inst : taps
-        generic map(
-          BITWIDTH  => BITWIDTH,
-          TAPS_WIDTH  => IMAGE_WIDTH-1,
-          KERNEL_SIZE => KERNEL_SIZE
-          )
-        port map(
-          clk       => clk,
-          reset_n   => reset_combined_n,
-          enable    => s_valid,
-          in_dv => in_dv,
-          in_data   => in_data,
-          taps_data => tmp_data(0 to KERNEL_SIZE-1),
-          out_data  => pixel_out(0),
-          first_tap_valid => first_tap_valid,
-          out_dv => dv_out_vec(0)
-          );
-    end generate gen_1;
-
-    -- line i
-    gen_i : if i > 0 and i < KERNEL_SIZE-1 generate
-      geni_inst : taps
-        generic map(
-          BITWIDTH  => BITWIDTH,
-          TAPS_WIDTH  => IMAGE_WIDTH-1,
-          KERNEL_SIZE => KERNEL_SIZE
-          )
-        port map(
-          clk       => clk,
-          reset_n   => reset_combined_n,
-          enable    => s_valid,
-          in_dv => dv_out_vec(i-1),
-          in_data   => pixel_out(i-1),
-          taps_data => tmp_data(i * KERNEL_SIZE to KERNEL_SIZE*(i+1)-1),
-          out_data  => pixel_out(i),
-          first_tap_valid => open,
-          out_dv => dv_out_vec(i)
-          );
-    end generate gen_i;
-
-    -- Last line
-    gen_last : if i = (KERNEL_SIZE-1) generate
-      gen_last_inst : taps
-        generic map(
-          BITWIDTH  => BITWIDTH,
-          TAPS_WIDTH  => KERNEL_SIZE,
-          KERNEL_SIZE => KERNEL_SIZE
-          )
-        port map(
-          clk       => clk,
-          reset_n   => reset_combined_n,
-          enable    => s_valid,
-          in_dv => dv_out_vec(i-1),
-          in_data   => pixel_out(i-1),
-          taps_data => tmp_data((KERNEL_SIZE-1) * KERNEL_SIZE to KERNEL_SIZE*KERNEL_SIZE - 1),
-          out_data  => open,
-          first_tap_valid => open,
-          out_dv => taps_valid_data
-          );
-    end generate gen_last;
-  end generate taps_inst;
-
-
-  --------------------------------------------------------------------------
-  -- Manage out_dv and out_fv
-  --------------------------------------------------------------------------
-  -- Embrace your self : Managing the image borders is quite a pain
-  -- > no actually not...
 
   dv_proc : process(clk)
   begin
@@ -229,67 +98,26 @@ begin
       if (reset_n = '0') or (in_fv = '0') then
         x_cmp  <=  (others => '0');
         y_cmp  <=  (others => '0');
-        tmp_dv <= '0';
-        delay_fv <= '0';
-        reset_taps_n <= '0';
+        out_dv <= '0';
+        out_fv <= '0';
+        --reset_taps_n <= '0';
+        out_data <= (others => (others => '0'));
+        pixel_buffer <= (others => (others => (others => '0')));
+        --kernel_data <= (others => (others => '0'));
       elsif(enable = '1') and (in_fv = '1') then
-        reset_taps_n <= '1';
-        delay_fv <= '1';
-        -- asking both means: we have a valid input and output
-        -- if (taps_valid_data = '1') and (in_dv = '1') then
-        --if (taps_valid_data = '1') and (first_tap_valid = '1') then
+        --reset_taps_n <= '1';
+        out_fv <= '1';
         if (in_dv = '1') then
-          -----------------------------------------------------------------
-          -- if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-          --   if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-          --     tmp_dv <= '0';
-          --     -- TODO
-          --     --delay_fv <= '0'; -- to reset downstream components?
-          --     reset_taps_n <= '1';
-          --     x_cmp  <=  (others => '0');
-          --     y_cmp  <=  (others => '0');
-          --     -- elsif(x_cmp< to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
-          --     --     tmp_dv <='0';
-          --     --     x_cmp := x_cmp + to_unsigned(1,WIDTH_COUNTER);
-          --   else
-          --     tmp_dv <= '1';
-          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   end if;
-          -- elsif (y_cmp < to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-          --     --tmp_fv <= '0';
-          --   tmp_dv <= '0';
-          --   if (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-          --     x_cmp <=  (others => '0');
-          --     y_cmp <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   else
-          --     x_cmp <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   end if;
-          -- else
-          --     -- Start of frame
-          --   if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
-          --     tmp_dv <= '1';
-          --     x_cmp  <=  (others => '0');
-          --     y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   elsif (x_cmp < to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) then
-          --     tmp_dv <= '0';
-          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   else
-          --       --tmp_fv <= '1';
-          --     tmp_dv <= '1';
-          --     x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
-          --   end if;
-          -- end if;
-          -----------------------------------------------------------------
           if ( x_cmp >= to_unsigned (KERNEL_SIZE - 1, WIDTH_COUNTER)) and ( x_cmp <= to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp >= to_unsigned (KERNEL_SIZE-1, WIDTH_COUNTER)) then
-            tmp_dv <= '1';
+            out_dv <= '1';
           else
-            tmp_dv <= '0';
+            out_dv <= '0';
           end if;
           if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) then
             x_cmp  <=  (others => '0');
             if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-              reset_taps_n <= '0';
-            --tmp_dv <= '0';  NO, is still valid
+              --reset_taps_n <= '0';
+            --out_dv <= '0';  NO, is still valid
               y_cmp  <=  (others => '0');
             else
               y_cmp  <=  y_cmp + to_unsigned(1, WIDTH_COUNTER);
@@ -297,41 +125,41 @@ begin
           else
             x_cmp  <=  x_cmp + to_unsigned(1, WIDTH_COUNTER);
           end if;
-          --if (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) and (x_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
-          --  --tmp_dv <= '0';  NO, is still valid
-          --    -- TODO
-          --    --delay_fv <= '0'; -- to reset downstream components?
-          --  reset_taps_n <= '0';
-          --  x_cmp  <=  (others => '0');
-          --  y_cmp  <=  (others => '0');
-          --end if;
-        -- else
-        --   tmp_dv <= '0';
-        -- end if;
-        --  -- when fv = 0
-        --  else
-        --    x_cmp  := (others => '0');
-        --    y_cmp  := (others => '0');
-        --    tmp_dv <= '0';
-        --    --tmp_fv <= '0';
-        --  end if;
+            --if (x_cmp = to_unsigned (IMAGE_WIDTH-1, WIDTH_COUNTER)) and (y_cmp = to_unsigned (IMAGE_WIDTH - 1, WIDTH_COUNTER)) then
+            --  -- reset buffer
+            --  pixel_buffer <= (others => (others => (others => '0')));
+            --  --kernel_data <= (others => (others => '0'));
+            --else
+            --    -- advance buffer
+            --end if;
+            -- advance buffer
+          pixel_buffer(0)(0) <= in_data;
+          first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+            pixel_buffer(0)(j) <= pixel_buffer(0)(j-1);
+          end loop first_line_loop;
+          outer_buffer_loop: for i in 1 to (KERNEL_SIZE -1 ) loop
+            pixel_buffer(i)(0) <= pixel_buffer(i-1)(IMAGE_WIDTH - 1);
+            inner_buffer_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+              pixel_buffer(i)(j) <= pixel_buffer(i)(j-1);
+            end loop inner_buffer_loop;
+          end loop outer_buffer_loop;
+          -- set out data
+          kernel_loop: for k in 0 to (KERNEL_SIZE-1) loop
+            out_data(k*KERNEL_SIZE to (k+1)*KERNEL_SIZE - 1) <= pixel_buffer(k)(0 to KERNEL_SIZE - 1);
+          end loop kernel_loop;
         else
-          reset_taps_n <= '0';
-          tmp_dv <= '0';
+          --reset_taps_n <= '0';
+          out_dv <= '0';
+          out_data <= (others => std_logic_vector(to_unsigned(42, out_data(0)'length)));
         end if;
       -- When enable = 0
       else
-        -- x_cmp  <=  (others => '0');
-        -- y_cmp  <=  (others => '0');
-        tmp_dv <= '0';
-        delay_fv <= '0';
-        reset_taps_n <= '0';
-      --tmp_fv <= '0';
+        out_dv <= '0';
+        out_fv <= '0';
+        --reset_taps_n <= '0';
+        out_data <= (others => std_logic_vector(to_unsigned(43, out_data(0)'length)));
       end if;
     end if;
   end process;
 
-  out_data <= tmp_data;
-  out_dv <= tmp_dv;
-  out_fv <= delay_fv;
 end architecture;

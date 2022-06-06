@@ -67,7 +67,10 @@ begin
     --out_valid <= in_valid;
       else
         -- out_data <= (others => (others => '0'));
-        out_data <= (others => std_logic_vector(to_unsigned(201, out_data(0)'length)));
+        --out_data <= (others => std_logic_vector(to_unsigned(201, out_data(0)'length)));
+        cast_loop: for i in 0 to DOT_PRODUCT_SIZE - 1 loop
+            out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+        end loop;
         out_valid <= '0';
       end if;
     end if;
