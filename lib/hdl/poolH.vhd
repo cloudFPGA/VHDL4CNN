@@ -36,7 +36,7 @@ architecture rtl of poolH is
   signal tmp_dv           : std_logic := '0';
   signal x_cmp : unsigned(15 downto 0);
   signal l_cmp : unsigned(15 downto 0);
-  --signal delay_dv         : std_logic;
+  signal delay_dv         : std_logic;
 
 
 
@@ -52,18 +52,16 @@ begin
         --x_cmp            := (others => '0');
         x_cmp  <= to_unsigned(0, 16);
         l_cmp  <= to_unsigned(0, 16);
-        --delay_dv <= '0';
+        delay_dv <= '0';
 
       elsif (enable = '1') and (in_fv = '1') then
-        --delay_dv <= tmp_dv;
+        delay_dv <= tmp_dv;
         if (in_dv = '1') then
             -- Bufferize data --------------------------------------------------------
-          --buffer_data(KERNEL_SIZE - 1) <= signed(in_data);
-          --BUFFER_LOOP : for i in (KERNEL_SIZE - 1) downto 1 loop
-          --  buffer_data(i-1) <= buffer_data(i);
-          --end loop;
-          buffer_data(0) <= signed(in_data);
-          buffer_data(1) <= buffer_data(0);
+          buffer_data(KERNEL_SIZE - 1) <= signed(in_data);
+          BUFFER_LOOP : for i in (KERNEL_SIZE - 1) downto 1 loop
+            buffer_data(i-1) <= buffer_data(i);
+          end loop;
 
           --  -- Compute max -----------------------------------------------------------
           --if (buffer_data(0) > buffer_data(1)) then
@@ -73,32 +71,24 @@ begin
           --end if;
 
             -- H Subsample -------------------------------------------------------------
-          --if (l_cmp >= to_unsigned(IMAGE_WIDTH, 16)) then
-          --  if (x_cmp = to_unsigned(KERNEL_SIZE-1, 16)) then
-          --    tmp_dv <= '1';
-          --  else
-          --    tmp_dv <= '0';
-          --  end if;
-          --  l_cmp <=  to_unsigned(0, 16);
-          --  x_cmp <=  to_unsigned(0, 16);
-          --else
-          --  l_cmp  <=  x_cmp + to_unsigned(1, 16);
-          --  if (x_cmp = to_unsigned(KERNEL_SIZE-1, 16)) then
-          --    tmp_dv <= '1';
-          --    x_cmp <=  to_unsigned(0, 16);
-          --  else
-          --    tmp_dv <= '0';
-          --    x_cmp  <=  x_cmp + to_unsigned(1, 16);
-          --  end if;
-          --end if;
-          if (x_cmp = to_unsigned(0, 16)) then
-            tmp_dv <= '0';
-            x_cmp <= to_unsigned(1, 16);
+          if (l_cmp >= to_unsigned(IMAGE_WIDTH, 16)) then
+            if (x_cmp = to_unsigned(KERNEL_SIZE-1, 16)) then
+              tmp_dv <= '1';
+            else
+              tmp_dv <= '0';
+            end if;
+            l_cmp <=  to_unsigned(0, 16);
+            x_cmp <=  to_unsigned(0, 16);
           else
-            tmp_dv <= '1';
-            x_cmp <= to_unsigned(0, 16);
+            l_cmp  <=  x_cmp + to_unsigned(1, 16);
+            if (x_cmp = to_unsigned(KERNEL_SIZE-1, 16)) then
+              tmp_dv <= '1';
+              x_cmp <=  to_unsigned(0, 16);
+            else
+              tmp_dv <= '0';
+              x_cmp  <=  x_cmp + to_unsigned(1, 16);
+            end if;
           end if;
-
         --------------------------------------------------------------------------
         else
           -- Data is not valid
@@ -106,8 +96,6 @@ begin
           --max_value_signal <= to_signed(11, BITWIDTH);
           --max_value_signal <= signed(in_data);
           tmp_dv <= '0';
-          -- TODO
-          x_cmp <= to_unsigned(0, 16);
           --buffer_data(0) <= signed(in_data);
           --buffer_data(1) <= signed(in_data);
           --buffer_data(0) <= to_signed(11, BITWIDTH);
@@ -125,9 +113,7 @@ begin
         --max_value_signal <= (others => '0');
         --max_value_signal <= to_signed(9, BITWIDTH);
         tmp_dv <= '0';
-        -- TODO
-        x_cmp <= to_unsigned(0, 16);
-        --delay_dv <= '0';
+        delay_dv <= '0';
       end if;
     end if;
   end process;
@@ -154,7 +140,5 @@ begin
               std_logic_vector(buffer_data(1));
 
   out_fv   <= delay_fv;
-  --out_dv   <= delay_dv;
-  out_dv   <= tmp_dv;
-
+  out_dv   <= delay_dv;
 end architecture;

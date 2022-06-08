@@ -36,7 +36,7 @@ architecture rtl of poolV is
   signal buffer_fv        : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal delay_fv         : std_logic := '0';
   signal tmp_dv           : std_logic := '0';
-  --signal delay_dv         : std_logic;
+  signal delay_dv         : std_logic;
   signal x_cmp            : unsigned (15 downto 0);
 
 
@@ -52,10 +52,10 @@ begin
         --max_value_signal <= (others => '0');
         -- x_cmp            := (others => '0');
         x_cmp            <=  to_unsigned(0, 16);
-        --delay_dv <= '0';
+        delay_dv <= '0';
 
       elsif (enable = '1') and (in_fv = '1') then
-        --delay_dv <= tmp_dv;
+        delay_dv <= tmp_dv;
         if (in_dv = '1') then
 
           -- Bufferize line --------------------------------------------------------
@@ -114,7 +114,7 @@ begin
         -- max_value_signal <= (others => '0');
         --max_value_signal <= to_signed(22, BITWIDTH);
         tmp_dv <= '0';
-        --delay_dv <= '0';
+        delay_dv <= '0';
       end if;
     end if;
   end process;
@@ -142,7 +142,6 @@ begin
               std_logic_vector(buffer_data(1));
 
   out_fv   <= delay_fv;
-  --out_dv   <= delay_dv;
-  out_dv   <= tmp_dv;
+  out_dv   <= delay_dv;
 
 end architecture;
