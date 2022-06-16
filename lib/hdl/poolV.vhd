@@ -30,12 +30,13 @@ architecture rtl of poolV is
   --------------------------------------------------------------------------
   type buffer_data_type is array (integer range <>) of signed (BITWIDTH-1 downto 0);
 
-  signal buffer_line      : buffer_data_type (IMAGE_WIDTH - 1 downto 0);
-  signal buffer_data      : buffer_data_type (KERNEL_SIZE - 1 downto 0);
-  signal max_value_signal : signed (BITWIDTH - 1 downto 0);
+  signal buffer_line      : buffer_data_type (IMAGE_WIDTH downto 0); -- NOT -1
+  --signal buffer_data      : buffer_data_type (KERNEL_SIZE - 1 downto 0);
+  --signal max_value_signal : signed (BITWIDTH - 1 downto 0);
   signal buffer_fv        : std_logic_vector(KERNEL_SIZE-1 downto 0);
   signal delay_fv         : std_logic := '0';
   signal tmp_dv           : std_logic := '0';
+  signal delay_dv         : std_logic;
   signal x_cmp            : unsigned (15 downto 0);
 
 
@@ -46,43 +47,48 @@ begin
     if (rising_edge(clk)) then
       if (reset_n = '0') or (in_fv = '0') then
         tmp_dv           <= '0';
-        buffer_data      <= (others => (others => '0'));
+        --buffer_data      <= (others => (others => '0'));
         buffer_line      <= (others => (others => '0'));
-        max_value_signal <= (others => '0');
+        --max_value_signal <= (others => '0');
         -- x_cmp            := (others => '0');
-        x_cmp            <=  to_unsigned(1, 16);
+        x_cmp            <=  to_unsigned(0, 16);
+        delay_dv <= '0';
 
       elsif (enable = '1') and (in_fv = '1') then
+        delay_dv <= tmp_dv;
         if (in_dv = '1') then
 
           -- Bufferize line --------------------------------------------------------
-          buffer_line(IMAGE_WIDTH - 1) <= signed(in_data);
-          BUFFER_LOOP : for i in (IMAGE_WIDTH - 1) downto 1 loop
+          buffer_line(IMAGE_WIDTH) <= signed(in_data);
+          BUFFER_LOOP : for i in IMAGE_WIDTH downto 1 loop
             buffer_line(i-1) <= buffer_line(i);
           end loop;
 
-          buffer_data(0) <= signed(in_data);
-          buffer_data(1) <= buffer_line(0);
+          --buffer_data(0) <= signed(in_data);
+          --buffer_data(1) <= buffer_line(0);
 
-          -- Compute max : Case2 , just a comparator --------------------------------
-          -- TODO: I guess, due to the counters (+1, 2) it is intended that we compare last cycles values
-          if (buffer_data(0) > buffer_data(1)) then
-            max_value_signal <= buffer_data(0);
-          else
-            max_value_signal <= buffer_data(1);
-          end if;
+          ---- Compute max : Case2 , just a comparator --------------------------------
+          ---- TODO: I guess, due to the counters (+1, 2) it is intended that we compare last cycles values
+          --if (buffer_data(0) > buffer_data(1)) then
+          --  max_value_signal <= buffer_data(0);
+          --else
+          --  max_value_signal <= buffer_data(1);
+          --end if;
 
           -- V Subsample -------------------------------------------------------------
-          if (x_cmp < to_unsigned(IMAGE_WIDTH+1, 16)) then
+          -- <= because 0 isn't a valid input
+          if (x_cmp <= to_unsigned(IMAGE_WIDTH, 16)) then
             tmp_dv <= '0';
             --max_value_signal <= to_signed(63, BITWIDTH);
-            max_value_signal <= signed(in_data);
+            --max_value_signal <= signed(in_data);
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
           elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
             tmp_dv <= '0';
-            x_cmp  <=  to_unsigned(2, 16);
+            --x_cmp  <=  to_unsigned(0, 16);
+            -- 1, because we aren't in the initial phase
+            x_cmp  <=  to_unsigned(1, 16);
             --max_value_signal <= to_signed(65, BITWIDTH);
-            max_value_signal <= signed(in_data);
+            --max_value_signal <= signed(in_data);
           else
             tmp_dv <= '1';
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
@@ -92,7 +98,11 @@ begin
           -- Data is not valid
           -- max_value_signal <= (others => '0');
           --max_value_signal <= to_signed(45, BITWIDTH);
-          max_value_signal <= signed(in_data);
+          --max_value_signal <= signed(in_data);
+          --buffer_data(0) <= signed(in_data);
+          --buffer_data(1) <= signed(in_data);
+          --buffer_data(0) <= to_signed(45, BITWIDTH);
+          --buffer_data(1) <= to_signed(45, BITWIDTH);
           tmp_dv <= '0';
         end if;
       --  else
@@ -105,8 +115,9 @@ begin
       --  end if;
       else
         -- max_value_signal <= (others => '0');
-        max_value_signal <= to_signed(22, BITWIDTH);
+        --max_value_signal <= to_signed(22, BITWIDTH);
         tmp_dv <= '0';
+        delay_dv <= '0';
       end if;
     end if;
   end process;
@@ -128,9 +139,15 @@ begin
   end process;
 
 
-  out_data <= std_logic_vector(max_value_signal);
+  --out_data <= std_logic_vector(max_value_signal);
   --out_data <= std_logic_vector(resize(signed(max_value_signal), BITWIDTH));
+  --out_data <= std_logic_vector(buffer_data(0)) when (buffer_data(0) > buffer_data(1)) else
+  --            std_logic_vector(buffer_data(1));
+  out_data <= std_logic_vector(buffer_line(IMAGE_WIDTH)) when (buffer_line(IMAGE_WIDTH) > buffer_line(0)) else
+              std_logic_vector(buffer_line(0));
+
   out_fv   <= delay_fv;
-  out_dv   <= tmp_dv;
+  out_dv   <= delay_dv;
+  --out_dv   <= tmp_dv;
 
 end architecture;
