@@ -69,7 +69,7 @@ begin
           --end if;
 
           -- H Subsample -------------------------------------------------------------
-          if (x_cmp = to_unsigned(KERNEL_SIZE-1, 16)) then
+          if (x_cmp >= to_unsigned(KERNEL_SIZE-1, 16)) then
             tmp_dv <= '1';
             x_cmp <=  to_unsigned(0, 16);
           else
@@ -127,5 +127,7 @@ begin
               std_logic_vector(buffer_data(1));
 
   out_fv   <= delay_fv;
-  out_dv   <= delay_dv;
+  --out_dv   <= delay_dv;
+  out_dv   <= tmp_dv;
+
 end architecture;

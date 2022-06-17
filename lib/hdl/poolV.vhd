@@ -76,17 +76,15 @@ begin
           --end if;
 
           -- V Subsample -------------------------------------------------------------
-          -- <= because 0 isn't a valid input
-          if (x_cmp <= to_unsigned(IMAGE_WIDTH, 16)) then
+          if (x_cmp < to_unsigned(IMAGE_WIDTH, 16)) then
             tmp_dv <= '0';
             --max_value_signal <= to_signed(63, BITWIDTH);
             --max_value_signal <= signed(in_data);
             x_cmp  <=  x_cmp + to_unsigned(1, 16);
-          elsif (x_cmp > to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH, 16)) then
-            tmp_dv <= '0';
-            --x_cmp  <=  to_unsigned(0, 16);
-            -- 1, because we aren't in the initial phase
-            x_cmp  <=  to_unsigned(1, 16);
+          elsif (x_cmp >= to_unsigned(IMAGE_WIDTH + IMAGE_WIDTH - 1, 16)) then
+            --tmp_dv <= '0';
+            tmp_dv <= '1';
+            x_cmp  <=  to_unsigned(0, 16);
             --max_value_signal <= to_signed(65, BITWIDTH);
             --max_value_signal <= signed(in_data);
           else
@@ -147,7 +145,7 @@ begin
               std_logic_vector(buffer_line(0));
 
   out_fv   <= delay_fv;
-  out_dv   <= delay_dv;
-  --out_dv   <= tmp_dv;
+  --out_dv   <= delay_dv;
+  out_dv   <= tmp_dv;
 
 end architecture;
