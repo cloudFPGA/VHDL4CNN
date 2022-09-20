@@ -118,7 +118,9 @@ begin
     -- array_cast(K) <= (in_data(K)'length-1  downto 0 => in_data(K), others => '0');
     --array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH), array_cast(K)'length));
     -- TODO: make generic, but -1 because it is 7*7 scale, not 8*8; (and not -2, because one 7 is already accounted for)
-    array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH-1), array_cast(K)'length));
+    -- array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH-1), array_cast(K)'length));
+    -- TODO: NO BIT-SHIFT! Staying in higher dimension
+    array_cast(K) <= std_logic_vector(resize(signed(in_data(K)), array_cast(K)'length));
   end generate tc;
 
   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
@@ -136,7 +138,10 @@ begin
       -- elsif (enable = '1') then
       elsif (enable = '1') and (tmp_valid = '1') then
         -- if (tmp_valid='1') then
-          out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
+          -- out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
+          -- resize BIAS to add in higher domain
+          -- TODO: shift BITWIDTH or BITWIDTH-1?
+          out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
           out_valid <= '1';
         --else
         --  --out_data <= (others => '0');

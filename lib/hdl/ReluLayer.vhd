@@ -25,15 +25,18 @@ architecture Bhv of ReluLayer is
   -- KERNEL_SIZE to account for multiple adds?
   -- actually two bits per addition...so 2*BITWIDTH?
   --constant SCALE_SHIFT        : integer := BITWIDTH + KERNEL_SIZE;
-  constant SCALE_SHIFT        : integer := 2 * BITWIDTH;
+  --constant SCALE_SHIFT        : integer := 2 * BITWIDTH;
   signal scaled_back_data: std_logic_vector(SUM_WIDTH-1 downto 0);
 
 begin
 
   --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), SCALE_SHIFT));
+  scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH-1));
   -- TODO: clean up, scale back happens before adder tree (MOA)
-  scaled_back_data <= in_data;
-  out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
+  -- scaled_back_data <= in_data;
+  -- TODO for debugging
+  -- out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
+  out_data <= (others => '1') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
               std_logic_vector(to_signed(SCALE_FACTOR, BITWIDTH)) when (signed(scaled_back_data) > to_signed(SCALE_FACTOR, SUM_WIDTH)) else
               --scaled_back_data(BITWIDTH-1 downto 0);
               std_logic_vector(resize(signed(scaled_back_data), BITWIDTH));
