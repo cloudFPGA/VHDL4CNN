@@ -57,7 +57,8 @@ begin
       elsif (enable = '1') and (in_valid = '1') then
         --if (in_valid = '1') then
           mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
-            out_data(i) <= std_logic_vector(signed(signed(KERNEL_VALUE(i)) * signed(in_data(i))));
+            --out_data(i) <= std_logic_vector(signed(signed(KERNEL_VALUE(i)) * signed(in_data(i))));
+            out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
           end loop;
           out_valid <= '1';
         --else

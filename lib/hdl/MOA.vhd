@@ -141,7 +141,8 @@ begin
           -- out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
           -- resize BIAS to add in higher domain
           -- TODO: shift BITWIDTH or BITWIDTH-1?
-          out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
+          --out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
+          out_data <= std_logic_vector(signed(tmp_data) + resize(SHIFT_LEFT(signed(BIAS_VALUE), SCALE_BITS), tmp_data'length));
           out_valid <= '1';
         --else
         --  --out_data <= (others => '0');

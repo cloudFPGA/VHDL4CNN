@@ -31,12 +31,14 @@ architecture Bhv of ReluLayer is
 begin
 
   --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), SCALE_SHIFT));
-  scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH-1));
+  --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH-1));
+  -- including rounding
+  scaled_back_data <= std_logic_vector(SHIFT_RIGHT((signed(in_data) + to_signed(ROUND_FACTOR, SUM_WIDTH)), SCALE_BITS));
   -- TODO: clean up, scale back happens before adder tree (MOA)
   -- scaled_back_data <= in_data;
   -- TODO for debugging
-  -- out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
-  out_data <= (others => '1') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
+  out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
+  -- out_data <= (others => '1') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
               std_logic_vector(to_signed(SCALE_FACTOR, BITWIDTH)) when (signed(scaled_back_data) > to_signed(SCALE_FACTOR, SUM_WIDTH)) else
               --scaled_back_data(BITWIDTH-1 downto 0);
               std_logic_vector(resize(signed(scaled_back_data), BITWIDTH));
