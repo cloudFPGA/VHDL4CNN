@@ -138,6 +138,7 @@ begin
       -- elsif (enable = '1') then
       elsif (enable = '1') and (tmp_valid = '1') then
         -- if (tmp_valid='1') then
+          -- TODO: no bias scaling??
           -- out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
           -- resize BIAS to add in higher domain
           -- TODO: shift BITWIDTH or BITWIDTH-1?
