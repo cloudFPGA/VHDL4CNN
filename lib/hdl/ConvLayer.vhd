@@ -40,6 +40,7 @@ entity ConvLayer is
     NB_IN_FLOWS  : integer;
     NB_OUT_FLOWS : integer;
     USE_RELU_ACTIVATION : boolean;
+    USE_TANH_ACTIVATION : boolean;
     KERNEL_VALUE : pixel_matrix;
     BIAS_VALUE   : pixel_array
     );
@@ -220,7 +221,7 @@ begin
           );
     end generate;
 
-    tanh_activation: if not USE_RELU_ACTIVATION generate
+    tanh_activation: if USE_TANH_ACTIVATION generate
       TanhLayer_i : TanhLayer
         generic map (
           BITWIDTH => BITWIDTH,
@@ -230,6 +231,10 @@ begin
           in_data  => dp_data(n),
           out_data => out_data(n)
           );
+    end generate;
+
+    passthrough_activation: if (not USE_RELU_ACTIVATION) and (not USE_TANH_ACTIVATION) generate
+      out_data(n) <= in_data(n)(in_data(n)'left) & in_data(n)(2*BITWIDTH downto BITWIDTH + 1);
     end generate;
 
   end generate DotProduct_loop;

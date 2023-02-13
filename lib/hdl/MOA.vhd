@@ -112,6 +112,7 @@ architecture rtl of MOA is
     signal tmp_data: std_logic_vector (SUM_WIDTH-1 downto 0);
     signal tmp_valid: std_logic;
     signal array_cast : sum_array(NUM_OPERANDS-1 downto 0);
+    signal bias_cast :  std_logic_vector (SUM_WIDTH-1 downto 0);
 begin
 
   tc: for K in array_cast'range generate
@@ -120,7 +121,9 @@ begin
     -- TODO: make generic, but -1 because it is 7*7 scale, not 8*8; (and not -2, because one 7 is already accounted for)
     -- array_cast(K) <= std_logic_vector(resize(SHIFT_RIGHT(signed(in_data(K)), BITWIDTH-1), array_cast(K)'length));
     -- TODO: NO BIT-SHIFT! Staying in higher dimension
-    array_cast(K) <= std_logic_vector(resize(signed(in_data(K)), array_cast(K)'length));
+    --array_cast(K) <= std_logic_vector(resize(signed(in_data(K)), array_cast(K)'length));
+    -- NO RESIZE
+    array_cast(K) <= (others => in_data(K)(in_data(K)'left)) & in_data(K);
   end generate tc;
 
   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
@@ -128,6 +131,9 @@ begin
   port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
            in_data=>array_cast,
            out_data=>tmp_data, out_valid=>tmp_valid);
+
+  bias_cast(SUM_WIDTH - 1 downto SUM_WIDTH - BITWIDH) <= (others => BIAS_VALUE(BIAS_VALUE'left)) & BIAS_VALUE;
+  bias_cast(SUM_WIDTH - BITWIDH -1 downto 0) <= '0');
 
   process(clk)
   begin
@@ -143,7 +149,9 @@ begin
           -- resize BIAS to add in higher domain
           -- TODO: shift BITWIDTH or BITWIDTH-1?
           --out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
-          out_data <= std_logic_vector(signed(tmp_data) + resize(SHIFT_LEFT(signed(BIAS_VALUE), SCALE_BITS), tmp_data'length));
+          --out_data <= std_logic_vector(signed(tmp_data) + resize(SHIFT_LEFT(signed(BIAS_VALUE), SCALE_BITS), tmp_data'length));
+          -- no RESIZE!
+          out_data <= std_logic_vector(signed(tmp_data) + signed(bias_cast));
           out_valid <= '1';
         --else
         --  --out_data <= (others => '0');
@@ -156,7 +164,9 @@ begin
         --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
         --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
         --end loop;
-        out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
+        -- out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
+        -- for debugging, we can ignore the sign bit?
+        out_data <= (others => '0') & in_data;
         out_valid <= '0';
       end if;
     end if;

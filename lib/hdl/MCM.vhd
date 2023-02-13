@@ -71,7 +71,9 @@ begin
         -- for debugging: pass the data through if not valid
         --out_data <= (others => std_logic_vector(to_unsigned(201, out_data(0)'length)));
         cast_loop: for i in 0 to DOT_PRODUCT_SIZE - 1 loop
-            out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+            --out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+            -- for debugging, we can ignore the sign bit?
+            out_data(i) <= (others => '0') & in_data(i);
         end loop;
         out_valid <= '0';
       end if;

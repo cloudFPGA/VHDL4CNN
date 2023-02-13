@@ -20,15 +20,22 @@ architecture Bhv of TanhLayer is
 -- Piecewise implementation of TanH
 
   signal scaled_back_data: std_logic_vector(SUM_WIDTH-1 downto 0);
+  signal tmp_out: std_logic_vector(BITWIDH-1 downto 0);
 
 begin
   --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH-1));
   scaled_back_data <= std_logic_vector(SHIFT_RIGHT((signed(in_data) + to_signed(ROUND_FACTOR, SUM_WIDTH)), SCALE_BITS));
+  -- DON'T USE resize! https://redirect.cs.umbc.edu/portal/help/VHDL/numeric_std.vhdl
+  -- manually take care of sign bit
+  -- we scale back only by 8 (i.e. 2^(n-1) + 1 )
+  tmp_out <= in_data(in_data'left) & in_data(2*BITWIDTH downto BITWIDTH + 1);
+
   --sum_s    <= signed(in_data);
   out_data <= std_logic_vector(to_signed(-V2, BITWIDTH)) when (signed(scaled_back_data) < to_signed(-T2, SUM_WIDTH)) else
               std_logic_vector(to_signed( V2, BITWIDTH)) when (signed(scaled_back_data) > to_signed( T2, SUM_WIDTH)) else
               -- std_logic_vector(SHIFT_RIGHT(signed(in_data), 2*BITWIDTH)(BITWIDTH-1 downto 0));
               -- in_data(BITWIDTH-1 downto 0));
-              std_logic_vector(resize(signed(scaled_back_data), BITWIDTH));
+              -- std_logic_vector(resize(signed(scaled_back_data), BITWIDTH));
+              tmp_out;
 
 end architecture;

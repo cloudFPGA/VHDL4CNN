@@ -48,7 +48,9 @@ begin
   -- end process;
 
   input_split: for i in 0 to NB_OUT_FLOWS-1 generate
-    out_data(i) <= std_logic_vector(resize(signed(in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH)), out_data(i)'length));
+    --out_data(i) <= std_logic_vector(resize(signed(in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH)), out_data(i)'length));
+    out_data(i)(out_data(i)'length downto BITWIDH - 1) <= (others => in_data((i+1)*BITWIDH-1));
+    out_data(i)(BITWIDH -1 downto 0) <= in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH);
   end generate input_split;
 
   out_dv <= in_dv;
