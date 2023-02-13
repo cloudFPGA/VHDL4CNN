@@ -123,7 +123,7 @@ begin
     -- TODO: NO BIT-SHIFT! Staying in higher dimension
     --array_cast(K) <= std_logic_vector(resize(signed(in_data(K)), array_cast(K)'length));
     -- NO RESIZE
-    array_cast(K) <= (others => in_data(K)(in_data(K)'left)) & in_data(K);
+    array_cast(K) <= (array_cast(K)'left-1 downto in_data(K)'left => in_data(K)(in_data(K)'left)) & in_data(K);
   end generate tc;
 
   rec_a: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
@@ -132,8 +132,9 @@ begin
            in_data=>array_cast,
            out_data=>tmp_data, out_valid=>tmp_valid);
 
-  bias_cast(SUM_WIDTH - 1 downto SUM_WIDTH - BITWIDH) <= (others => BIAS_VALUE(BIAS_VALUE'left)) & BIAS_VALUE;
-  bias_cast(SUM_WIDTH - BITWIDH -1 downto 0) <= '0');
+  bias_cast(SUM_WIDTH - 1 downto 2*BITWIDTH) <= (others => BIAS_VALUE(BIAS_VALUE'left));
+  bias_cast(2*BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
+  bias_cast(BITWIDTH -1 downto 0) <= (others => '0');
 
   process(clk)
   begin
@@ -159,14 +160,12 @@ begin
         --  out_valid <= '0';
         --end if;
       else
-        --out_data <= (others => '0');
+        out_data <= (others => '0');
         --out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
         --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
         --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
         --end loop;
         -- out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
-        -- for debugging, we can ignore the sign bit?
-        out_data <= (others => '0') & in_data;
         out_valid <= '0';
       end if;
     end if;

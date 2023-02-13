@@ -20,7 +20,7 @@ architecture Bhv of TanhLayer is
 -- Piecewise implementation of TanH
 
   signal scaled_back_data: std_logic_vector(SUM_WIDTH-1 downto 0);
-  signal tmp_out: std_logic_vector(BITWIDH-1 downto 0);
+  signal tmp_out: std_logic_vector(BITWIDTH-1 downto 0);
 
 begin
   --scaled_back_data <= std_logic_vector(SHIFT_RIGHT(signed(in_data), BITWIDTH-1));

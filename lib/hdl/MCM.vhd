@@ -73,7 +73,7 @@ begin
         cast_loop: for i in 0 to DOT_PRODUCT_SIZE - 1 loop
             --out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
             -- for debugging, we can ignore the sign bit?
-            out_data(i) <= (others => '0') & in_data(i);
+            out_data(i) <= (out_data(i)'left -1 downto in_data(i)'left => '0') & in_data(i);
         end loop;
         out_valid <= '0';
       end if;
