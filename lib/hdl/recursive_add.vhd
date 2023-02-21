@@ -23,7 +23,7 @@ entity RADD is
     clk       : in  std_logic;
     reset_n   : in  std_logic;
     enable    : in  std_logic;
-    in_data   : in  sum_array (0 to NUM_OPERANDS - 1);
+    in_data   : in  sum_array (NUM_OPERANDS - 1 downto 0);
     in_valid  : in  std_logic;
     out_data  : out std_logic_vector (SUM_WIDTH-1 downto 0);
     out_valid : out std_logic
@@ -54,7 +54,7 @@ begin
             --out_valid <= in_valid;
             --acc   := (others => '0');
             acc   := to_signed(0, SUM_WIDTH);
-            acc_loop : for i in 0 to NUM_OPERANDS-1 loop
+            acc_loop : for i in NUM_OPERANDS-1 downto 0 loop
               acc := acc + signed(in_data(i));
             end loop acc_loop;
             out_data <= std_logic_vector(acc);
@@ -83,9 +83,9 @@ begin
     ln: block
       --constant REC_ADDER_NUM: integer  := integer(ceil(real(IMAGE_WIDTH)/3));
       --constant REC_ADDER_NUM: integer  := integer((real(IMAGE_WIDTH)+2)/3);
-      signal pip_store : sum_array (0 to ((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR) - 1) := (others => (others => '0'));
+      signal pip_store : sum_array (((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR) - 1 downto 0) := (others => (others => '0'));
       --signal pip_store : sum_array (0 to REC_ADDER_NUM - 1) := (others => (others => '0'));
-      signal dv_store : std_logic_vector(0 to ((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR) - 1) := (others => '0');
+      signal dv_store : std_logic_vector(((NUM_OPERANDS+(DIVIDER_FACTOR-1))/DIVIDER_FACTOR) - 1 downto 0) := (others => '0');
       --signal dv_delay : std_logic_vector(0 to 1);
     begin
       lln_first_stage: for K in pip_store'range generate
@@ -93,7 +93,7 @@ begin
         lln_full_K_inst: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
-                                       in_data=>in_data(K*DIVIDER_FACTOR to (K+1)*DIVIDER_FACTOR-1),
+                                       in_data=>in_data((K+1)*DIVIDER_FACTOR-1 downto K*DIVIDER_FACTOR),
                                        out_data=>pip_store(K),
                                        out_valid=>dv_store(K));
         end generate lln_full_K;
@@ -101,7 +101,7 @@ begin
         lln_remaining_K_inst: entity work.RADD generic map(BITWIDTH=>BITWIDTH,SUM_WIDTH=>SUM_WIDTH,
                                          NUM_OPERANDS=>NUM_OPERANDS-K*DIVIDER_FACTOR,ORDER=>K+ORDER*20)
                               port map(clk=>clk,reset_n=>reset_n,enable=>enable,in_valid=>in_valid,
-                                       in_data=>in_data(K*DIVIDER_FACTOR to in_data'length-1),
+                                       in_data=>in_data(in_data'length-1 downto K*DIVIDER_FACTOR),
                                        out_data=>pip_store(K),
                                        out_valid=>dv_store(K));
         end generate lln_remaining_K;
@@ -126,3 +126,4 @@ begin
 
 
 end architecture rtl;
+

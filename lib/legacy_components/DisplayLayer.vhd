@@ -26,7 +26,7 @@ entity DisplayLayer is
     NB_IN_FLOWS : integer
     );
   port(
-    in_data  : in  pixel_array (0 to NB_IN_FLOWS-1);
+    in_data  : in  pixel_array (NB_IN_FLOWS-1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
     sel      : in  std_logic_vector(31 downto 0);

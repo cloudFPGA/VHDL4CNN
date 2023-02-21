@@ -18,9 +18,9 @@ entity MCM is
     clk       : in  std_logic;
     reset_n   : in  std_logic;
     enable    : in  std_logic;
-    in_data   : in  pixel_array (0 to DOT_PRODUCT_SIZE - 1);
+    in_data   : in  pixel_array (DOT_PRODUCT_SIZE - 1 downto 0);
     in_valid  : in  std_logic;
-    out_data  : out prod_array (0 to DOT_PRODUCT_SIZE - 1);
+    out_data  : out prod_array (DOT_PRODUCT_SIZE - 1 downto 0);
     out_valid : out std_logic
     );
 end MCM;
@@ -56,7 +56,7 @@ begin
        -- elsif (enable = '1') then
       elsif (enable = '1') and (in_valid = '1') then
         --if (in_valid = '1') then
-          mcm_loop : for i in 0 to DOT_PRODUCT_SIZE - 1 loop
+          mcm_loop : for i in DOT_PRODUCT_SIZE - 1 downto 0 loop
             --out_data(i) <= std_logic_vector(signed(signed(KERNEL_VALUE(i)) * signed(in_data(i))));
             out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
           end loop;
@@ -67,17 +67,18 @@ begin
         --end if;
     --out_valid <= in_valid;
       else
-        -- out_data <= (others => (others => '0'));
+        out_data <= (others => (others => '0'));
         -- for debugging: pass the data through if not valid
         --out_data <= (others => std_logic_vector(to_unsigned(201, out_data(0)'length)));
-        cast_loop: for i in 0 to DOT_PRODUCT_SIZE - 1 loop
-            --out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
-            -- for debugging, we can ignore the sign bit?
-            out_data(i) <= (out_data(i)'left -1 downto in_data(i)'left => '0') & in_data(i);
-        end loop;
+        -- cast_loop: for i in 0 DOT_PRODUCT_SIZE - 1 downto 0 loop
+        --     --out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+        --     -- for debugging, we can ignore the sign bit?
+        --     out_data(i) <= (out_data(i)'left -1 downto in_data(i)'left => '0') & in_data(i);
+        -- end loop;
         out_valid <= '0';
       end if;
     end if;
   end process;
 
 end architecture;
+

@@ -23,7 +23,7 @@ entity DynInputLayer is
     in_data  : in  std_logic_vector(INPUT_BIT_WIDTH-1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array(0 to NB_OUT_FLOWS-1);
+    out_data : out pixel_array(NB_OUT_FLOWS-1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
 
@@ -47,7 +47,7 @@ begin
   --   end if;
   -- end process;
 
-  input_split: for i in 0 to NB_OUT_FLOWS-1 generate
+  input_split: for i in NB_OUT_FLOWS-1 downto 0 generate
     --out_data(i) <= std_logic_vector(resize(signed(in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH)), out_data(i)'length));
     --out_data(i)(out_data(i)'length-1 downto BITWIDTH) <= (others => in_data((i+1)*BITWIDTH-1));
     --out_data(i)(BITWIDTH -1 downto 0) <= in_data((i+1)*BITWIDTH-1 downto i*BITWIDTH);

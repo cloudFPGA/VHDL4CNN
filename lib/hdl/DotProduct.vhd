@@ -17,7 +17,7 @@ entity DotProduct is
     clk      : in  std_logic;
     reset_n  : in  std_logic;
     enable   : in  std_logic;
-    in_data  : in  pixel_array (0 to DOT_PRODUCT_SIZE - 1);
+    in_data  : in  pixel_array (DOT_PRODUCT_SIZE - 1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
     out_data : out std_logic_vector (SUM_WIDTH-1 downto 0);
@@ -40,9 +40,9 @@ architecture rtl of DotProduct is
        clk       : in  std_logic;
        reset_n   : in  std_logic;
        enable    : in  std_logic;
-       in_data   : in  pixel_array (0 to DOT_PRODUCT_SIZE - 1);
+       in_data   : in  pixel_array (DOT_PRODUCT_SIZE - 1 downto 0);
        in_valid  : in  std_logic;
-       out_data  : out prod_array (0 to DOT_PRODUCT_SIZE - 1);
+       out_data  : out prod_array (DOT_PRODUCT_SIZE - 1 downto 0);
        out_valid : out std_logic
        );
   end component MCM;
@@ -58,14 +58,14 @@ architecture rtl of DotProduct is
        clk       : in  std_logic;
        reset_n   : in  std_logic;
        enable    : in  std_logic;
-       in_data   : in  prod_array (0 to NUM_OPERANDS - 1);
+       in_data   : in  prod_array (NUM_OPERANDS - 1 downto 0);
        in_valid  : in  std_logic;
        out_data  : out std_logic_vector (SUM_WIDTH-1 downto 0);
        out_valid : out std_logic
        );
   end component MOA;
   --
-     signal p_prod_data  : prod_array (0 to DOT_PRODUCT_SIZE - 1);
+     signal p_prod_data  : prod_array (DOT_PRODUCT_SIZE - 1 downto 0);
      signal p_prod_valid : std_logic;
      signal s_out_valid  : std_logic;
 
@@ -134,3 +134,4 @@ architecture rtl of DotProduct is
 --    end process;
 --    out_data <= pip_acc(DOT_PRODUCT_SIZE-1) + BIAS_VALUE;
 end architecture;
+

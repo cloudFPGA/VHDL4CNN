@@ -49,10 +49,10 @@ entity ConvLayer is
     clk      : in  std_logic;
     reset_n  : in  std_logic;
     enable   : in  std_logic;
-    in_data  : in  pixel_array(0 to NB_IN_FLOWS - 1);
+    in_data  : in  pixel_array(NB_IN_FLOWS - 1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array(0 to NB_OUT_FLOWS - 1);
+    out_data : out pixel_array(NB_OUT_FLOWS - 1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
     );
@@ -73,10 +73,10 @@ architecture STRUCTURAL of ConvLayer is
       clk      : in  std_logic;
       reset_n  : in  std_logic;
       enable   : in  std_logic;
-      in_data  : in  pixel_array (0 to NB_IN_FLOWS - 1);
+      in_data  : in  pixel_array (NB_IN_FLOWS - 1 downto 0);
       in_dv    : in  std_logic;
       in_fv    : in  std_logic;
-      out_data : out pixel_array (0 to NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1);
+      out_data : out pixel_array (NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
       out_dv   : out std_logic;
       out_fv   : out std_logic
       );
@@ -94,7 +94,7 @@ architecture STRUCTURAL of ConvLayer is
       clk      : in  std_logic;
       reset_n  : in  std_logic;
       enable   : in  std_logic;
-      in_data  : in  pixel_array (0 to DOT_PRODUCT_SIZE - 1);
+      in_data  : in  pixel_array (DOT_PRODUCT_SIZE - 1 downto 0);
       in_dv    : in  std_logic;
       in_fv    : in  std_logic;
       out_data : out std_logic_vector (SUM_WIDTH-1 downto 0);
@@ -129,10 +129,10 @@ architecture STRUCTURAL of ConvLayer is
   end component ReluLayer;
 
   ------------------------------------------------------------------------------------------
-  signal neighborhood_data : pixel_array (0 to NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1);
+  signal neighborhood_data : pixel_array (NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
   signal neighborhood_dv   : std_logic;
   signal neighborhood_fv   : std_logic;
-  signal dp_data           : sum_array (0 to NB_OUT_FLOWS-1);
+  signal dp_data           : sum_array (NB_OUT_FLOWS-1 downto 0);
   signal dp_dv             : std_logic;
   signal dp_fv             : std_logic;
 -----------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ begin
       out_fv   => neighborhood_fv
       );
 
-  DotProduct_loop : for n in 0 to NB_OUT_FLOWS- 1 generate
+  DotProduct_loop : for n in NB_OUT_FLOWS- 1 downto 0 generate
     DotProduct_0 : if n = 0 generate
       DotProduct_0_inst : DotProduct
         generic map (
@@ -244,3 +244,4 @@ begin
 
 
 end architecture;
+

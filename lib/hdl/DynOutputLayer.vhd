@@ -19,7 +19,7 @@ entity DynOutputLayer is
     NB_IN_FLOWS : integer
     );
   port(
-    in_data  : in  pixel_array (0 to NB_IN_FLOWS-1);
+    in_data  : in  pixel_array (NB_IN_FLOWS-1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
     out_data : out std_logic_vector(NB_IN_FLOWS*BITWIDTH-1 downto 0);
@@ -31,7 +31,7 @@ end entity;
 architecture bhv of DynOutputLayer is
 begin
 
-  output_combine: for i in 0 to NB_IN_FLOWS-1 generate
+  output_combine: for i in NB_IN_FLOWS-1 downto 0 generate
     out_data((i+1)*BITWIDTH-1 downto i*BITWIDTH) <= in_data(i);
   end generate output_combine;
 
@@ -39,3 +39,4 @@ begin
   out_fv   <= in_fv;
 
 end bhv;
+

@@ -22,7 +22,7 @@ entity InputLayer is
     in_data  : in  std_logic_vector(INPUT_BIT_WIDTH-1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array(0 to NB_OUT_FLOWS-1);
+    out_data : out pixel_array(NB_OUT_FLOWS-1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
 

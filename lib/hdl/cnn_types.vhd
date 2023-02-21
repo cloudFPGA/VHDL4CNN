@@ -53,9 +53,9 @@ package body cnn_types is
                       nb_col     : integer;
                       in_matrix  : pixel_matrix)
   return pixel_array is
-  variable out_vec : pixel_array (0 to nb_col - 1);
+  variable out_vec : pixel_array (nb_col - 1 downto 0);
   begin
-    for index_col in 0 to (nb_col - 1) loop
+    for index_col in (nb_col - 1) downto 0 loop
       out_vec(index_col) := in_matrix(target_row, index_col);
     end loop;
     return out_vec;

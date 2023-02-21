@@ -19,7 +19,7 @@ entity MOA is
     clk       : in  std_logic;
     reset_n   : in  std_logic;
     enable    : in  std_logic;
-    in_data   : in  prod_array (0 to NUM_OPERANDS - 1);
+    in_data   : in  prod_array (NUM_OPERANDS - 1 downto 0);
     in_valid  : in  std_logic;
     out_data  : out std_logic_vector (SUM_WIDTH-1 downto 0);
     out_valid : out std_logic
@@ -177,3 +177,4 @@ begin
 
 
 end architecture;
+

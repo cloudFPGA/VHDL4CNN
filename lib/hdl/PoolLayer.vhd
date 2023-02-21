@@ -22,10 +22,10 @@ entity PoolLayer is
     clk      : in  std_logic;
     reset_n  : in  std_logic;
     enable   : in  std_logic;
-    in_data  : in  pixel_array(0 to NB_OUT_FLOWS - 1);
+    in_data  : in  pixel_array(NB_OUT_FLOWS - 1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array(0 to NB_OUT_FLOWS - 1);
+    out_data : out pixel_array(NB_OUT_FLOWS - 1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
     );
@@ -57,7 +57,7 @@ architecture STRUCTURAL of PoolLayer is
 --------------------------------------------------------------------------------
 begin
 
-  generate_maxPool : for i in 0 to NB_OUT_FLOWS-1 generate
+  generate_maxPool : for i in NB_OUT_FLOWS-1 downto 0 generate
     first_maxpool : if i = 0 generate
       maxPool_0 : maxPool
         generic map(
@@ -99,3 +99,4 @@ begin
     end generate other_maxPool;
   end generate generate_maxPool;
 end STRUCTURAL;
+

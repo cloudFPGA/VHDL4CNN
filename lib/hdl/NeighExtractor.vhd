@@ -72,7 +72,7 @@ entity neighExtractor is
     in_data  : in  std_logic_vector((BITWIDTH-1) downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
+    out_data : out pixel_array ((KERNEL_SIZE * KERNEL_SIZE)- 1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
     );
@@ -80,10 +80,10 @@ end neighExtractor;
 
 architecture rtl of neighExtractor is
 
-  type pixel_matrix is array (integer range <>) of pixel_array(0 to IMAGE_WIDTH-1);
+  type pixel_matrix is array (integer range <>) of pixel_array(IMAGE_WIDTH-1 downto 0);
 
   --signal kernel_data  : pixel_array (0 to (KERNEL_SIZE * KERNEL_SIZE)- 1);
-  signal pixel_buffer : pixel_matrix(0 to KERNEL_SIZE - 1);
+  signal pixel_buffer : pixel_matrix(KERNEL_SIZE - 1 downto 0);
   signal delay_valid: std_logic;
 
   constant WIDTH_COUNTER : integer                           := integer(ceil(log2(real(IMAGE_WIDTH)))) + 2;
@@ -139,18 +139,18 @@ begin
           --end if;
           -- advance buffer
           pixel_buffer(0)(0) <= in_data;
-          first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+          first_line_loop: for j in (IMAGE_WIDTH - 1) downto 1 loop
             pixel_buffer(0)(j) <= pixel_buffer(0)(j-1);
           end loop first_line_loop;
-          outer_buffer_loop: for i in 1 to (KERNEL_SIZE -1 ) loop
+          outer_buffer_loop: for i in (KERNEL_SIZE -1 ) downto 1 loop
             pixel_buffer(i)(0) <= pixel_buffer(i-1)(IMAGE_WIDTH - 1);
-            inner_buffer_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+            inner_buffer_loop: for j in (IMAGE_WIDTH - 1) downto 1 loop
               pixel_buffer(i)(j) <= pixel_buffer(i)(j-1);
             end loop inner_buffer_loop;
           end loop outer_buffer_loop;
           -- set out data
-          kernel_loop: for k in 0 to (KERNEL_SIZE-1) loop
-            out_data(k*KERNEL_SIZE to (k+1)*KERNEL_SIZE - 1) <= pixel_buffer(k)(0 to KERNEL_SIZE - 1);
+          kernel_loop: for k in (KERNEL_SIZE-1) downto 0 loop
+            out_data((k+1)*KERNEL_SIZE - 1 downto k*KERNEL_SIZE) <= pixel_buffer(k)(KERNEL_SIZE - 1 downto 0);
           end loop kernel_loop;
           -- unused elements of last row will be removed anyhow by synthesis
         else

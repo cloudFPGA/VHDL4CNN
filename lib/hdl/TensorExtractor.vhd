@@ -25,10 +25,10 @@ entity TensorExtractor is
     clk      : in  std_logic;
     reset_n  : in  std_logic;
     enable   : in  std_logic;
-    in_data  : in  pixel_array (0 to NB_IN_FLOWS - 1);
+    in_data  : in  pixel_array (NB_IN_FLOWS - 1 downto 0);
     in_dv    : in  std_logic;
     in_fv    : in  std_logic;
-    out_data : out pixel_array (0 to NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1);
+    out_data : out pixel_array (NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
     out_dv   : out std_logic;
     out_fv   : out std_logic
     );
@@ -50,7 +50,7 @@ architecture rtl of TensorExtractor is
       in_data  : in  std_logic_vector(BITWIDTH-1 downto 0);
       in_dv    : in  std_logic;
       in_fv    : in  std_logic;
-      out_data : out pixel_array (0 to KERNEL_SIZE * KERNEL_SIZE- 1);
+      out_data : out pixel_array (KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
       out_dv   : out std_logic;
       out_fv   : out std_logic
       );
@@ -58,7 +58,7 @@ architecture rtl of TensorExtractor is
 
 -- begin
 begin
-  neighExtractor_gen : for c in 0 to NB_IN_FLOWS-1 generate
+  neighExtractor_gen : for c in NB_IN_FLOWS-1 downto 0 generate
 
     SINGLE_CHANNEL : if c = 0 generate
       neighExtractor_0 : neighExtractor
@@ -74,7 +74,7 @@ begin
           in_data  => in_data(0),
           in_dv    => in_dv,
           in_fv    => in_fv,
-          out_data => out_data(0 to KERNEL_SIZE * KERNEL_SIZE - 1),
+          out_data => out_data(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0),
           out_dv   => out_dv,
           out_fv   => out_fv
           );
@@ -94,10 +94,11 @@ begin
           in_data  => in_data(c),
           in_dv    => in_dv,
           in_fv    => in_fv,
-          out_data => out_data(c * KERNEL_SIZE * KERNEL_SIZE to (c+1) * KERNEL_SIZE * KERNEL_SIZE - 1),
+          out_data => out_data((c+1) * KERNEL_SIZE * KERNEL_SIZE - 1 downto c * KERNEL_SIZE * KERNEL_SIZE),
           out_dv   => open,
           out_fv   => open
           );
     end generate MULTI_CHANNEL;
   end generate neighExtractor_gen;
 end architecture;
+
