@@ -138,42 +138,54 @@ begin
   bias_cast(2*BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
   bias_cast(BITWIDTH -1 downto 0) <= (others => '0');
 
+  --process(clk)
+  --begin
+  --  if (rising_edge(clk)) then
+  --    if (reset_n = '0') then
+  --      out_data <= (others => '0');
+  --      out_valid <= '0';
+  --    -- elsif (enable = '1') then
+  --    elsif (enable = '1') and (tmp_valid = '1') then
+  --      -- if (tmp_valid='1') then
+  --        -- TODO: no bias scaling??
+  --        -- out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
+  --        -- resize BIAS to add in higher domain
+  --        -- TODO: shift BITWIDTH or BITWIDTH-1?
+  --        --out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
+  --        --out_data <= std_logic_vector(signed(tmp_data) + resize(SHIFT_LEFT(signed(BIAS_VALUE), SCALE_BITS), tmp_data'length));
+  --        -- no RESIZE!
+  --        out_data <= std_logic_vector(signed(tmp_data) + signed(bias_cast));
+  --        out_valid <= '1';
+  --      --else
+  --      --  --out_data <= (others => '0');
+  --      --  out_data <= std_logic_vector(to_unsigned(112, SUM_WIDTH));
+  --      --  out_valid <= '0';
+  --      --end if;
+  --    else
+  --      out_data <= (others => '0');
+  --      --out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
+  --      --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
+  --      --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
+  --      --end loop;
+  --      -- out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
+  --      out_valid <= '0';
+  --    end if;
+  --  end if;
+  --end process;
+
+
   process(clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') then
+      if (reset_n = '0') or (enable = '0') or (tmp_valid = '0') then
         out_data <= (others => '0');
         out_valid <= '0';
-      -- elsif (enable = '1') then
-      elsif (enable = '1') and (tmp_valid = '1') then
-        -- if (tmp_valid='1') then
-          -- TODO: no bias scaling??
-          -- out_data <= std_logic_vector(signed(signed(tmp_data) + signed(BIAS_VALUE)));
-          -- resize BIAS to add in higher domain
-          -- TODO: shift BITWIDTH or BITWIDTH-1?
-          --out_data <= std_logic_vector(signed(signed(tmp_data) + signed(resize(SHIFT_LEFT(signed(BIAS_VALUE), BITWIDTH), tmp_data'length))));
-          --out_data <= std_logic_vector(signed(tmp_data) + resize(SHIFT_LEFT(signed(BIAS_VALUE), SCALE_BITS), tmp_data'length));
-          -- no RESIZE!
+      else
           out_data <= std_logic_vector(signed(tmp_data) + signed(bias_cast));
           out_valid <= '1';
-        --else
-        --  --out_data <= (others => '0');
-        --  out_data <= std_logic_vector(to_unsigned(112, SUM_WIDTH));
-        --  out_valid <= '0';
-        --end if;
-      else
-        out_data <= (others => '0');
-        --out_data <= std_logic_vector(to_unsigned(114, SUM_WIDTH));
-        --cast_loop: for i in 0 to NUM_OPERANDS - 1 loop
-        --    out_data(i) <= std_logic_vector(resize(signed(in_data(i)), out_data(i)'length));
-        --end loop;
-        -- out_data <= std_logic_vector(resize(signed(in_data(0)), out_data'length));
-        out_valid <= '0';
       end if;
     end if;
   end process;
-
-
 
 
 end architecture;

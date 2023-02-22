@@ -106,17 +106,34 @@ begin
   end process;
 
   --------------------------------------------------------------------------
+  --delay : process(clk)
+  --begin
+  --  if (reset_n = '0') then
+  --    delay_fv  <= '0';
+  --    buffer_fv <= (others => '0');
+  --  elsif (rising_edge(clk)) then
+  --    if (enable = '1') then
+  --      buffer_fv <= buffer_fv(buffer_fv'high -1 downto 0) & in_fv;
+  --      delay_fv  <= buffer_fv(buffer_fv'high);
+  --    else
+  --      delay_fv  <= '0';
+  --    end if;
+  --  end if;
+  --end process;
+
   delay : process(clk)
   begin
-    if (reset_n = '0') then
-      delay_fv  <= '0';
-      buffer_fv <= (others => '0');
-    elsif (rising_edge(clk)) then
-      if (enable = '1') then
-        buffer_fv <= buffer_fv(buffer_fv'high -1 downto 0) & in_fv;
-        delay_fv  <= buffer_fv(buffer_fv'high);
-      else
+    if (rising_edge(clk)) then
+      if (reset_n = '0') then
         delay_fv  <= '0';
+        buffer_fv <= (others => '0');
+      else
+        if (enable = '1') then
+          buffer_fv <= buffer_fv(buffer_fv'high -1 downto 0) & in_fv;
+          delay_fv  <= buffer_fv(buffer_fv'high);
+        else
+          delay_fv  <= '0';
+        end if;
       end if;
     end if;
   end process;

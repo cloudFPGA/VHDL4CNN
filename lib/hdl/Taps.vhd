@@ -70,24 +70,26 @@ begin
         first_tap_valid <= '0';
         dv_buffer <= (others => '0');
       -- enable is only equal in_dv for the first "row", hence we still need both here
-      elsif (enable = '1') and (in_dv = '1') then
-        cell(0) <= in_data;
-        -- dv_buffer(0) <= in_dv;
-        dv_buffer(0) <= '1';
-        for i in (TAPS_WIDTH-1) downto 1 loop
-          cell(i) <= cell(i-1);
-          dv_buffer(i) <= dv_buffer(i-1);
-        end loop;
-        taps_data <= cell(KERNEL_SIZE-1 downto 0);
-        out_data  <= cell(TAPS_WIDTH-1);
-        out_dv <= dv_buffer(TAPS_WIDTH-1);
-        first_tap_valid <= '1';
       else
-        out_dv <= '0';
-        first_tap_valid <= '0';
-        out_data  <= (others => '0');
-        -- taps_data <= (others => (others => '0'));
-        taps_data <= (others => std_logic_vector(to_unsigned(221, taps_data(0)'length)));
+        if (enable = '1') and (in_dv = '1') then
+          cell(0) <= in_data;
+          -- dv_buffer(0) <= in_dv;
+          dv_buffer(0) <= '1';
+          for i in (TAPS_WIDTH-1) downto 1 loop
+            cell(i) <= cell(i-1);
+            dv_buffer(i) <= dv_buffer(i-1);
+          end loop;
+          taps_data <= cell(KERNEL_SIZE-1 downto 0);
+          out_data  <= cell(TAPS_WIDTH-1);
+          out_dv <= dv_buffer(TAPS_WIDTH-1);
+          first_tap_valid <= '1';
+        else
+          out_dv <= '0';
+          first_tap_valid <= '0';
+          out_data  <= (others => '0');
+          -- taps_data <= (others => (others => '0'));
+          taps_data <= (others => std_logic_vector(to_unsigned(221, taps_data(0)'length)));
+        end if;
       end if;
     end if;
   end process;
