@@ -124,7 +124,8 @@ begin
     --array_cast(K) <= std_logic_vector(resize(signed(in_data(K)), array_cast(K)'length));
     -- NO RESIZE
     --array_cast(K) <= (array_cast(K)'left-1 downto in_data(K)'left => in_data(K)(in_data(K)'left)) & in_data(K);
-    array_cast(K) <= (others => in_data(K)(2*BITWIDTH-1));
+    --array_cast(K) <= (others => in_data(K)(2*BITWIDTH-1));
+    --array_cast(K) <= (others => in_data(K)(2*BITWIDTH-1));
     array_cast(K)(2*BITWIDTH-1 downto 0) <=  in_data(K);
   end generate tc;
 
@@ -134,7 +135,7 @@ begin
            in_data=>array_cast,
            out_data=>tmp_data, out_valid=>tmp_valid);
 
-  bias_cast(SUM_WIDTH - 1 downto 2*BITWIDTH) <= (others => BIAS_VALUE(BITWIDTH-1));
+  --bias_cast(SUM_WIDTH - 1 downto 2*BITWIDTH) <= (others => BIAS_VALUE(BITWIDTH-1));
   bias_cast(2*BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
   bias_cast(BITWIDTH -1 downto 0) <= (others => '0');
 
@@ -177,13 +178,13 @@ begin
   process(clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') or (enable = '0') or (tmp_valid = '0') then
-        out_data <= (others => '0');
-        out_valid <= '0';
-      else
+      --if (reset_n = '0') or (enable = '0') or (tmp_valid = '0') then
+      --  out_data <= (others => '0');
+      --  out_valid <= '0';
+      --else
           out_data <= std_logic_vector(signed(tmp_data) + signed(bias_cast));
-          out_valid <= '1';
-      end if;
+          out_valid <= tmp_valid;
+      --end if;
     end if;
   end process;
 

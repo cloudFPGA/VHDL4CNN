@@ -84,16 +84,17 @@ begin
   process(clk)
   begin
     if (rising_edge(clk)) then
-      if (reset_n = '0') or (enable = '0') or (in_valid = '0') then
-        out_data  <= (others => (others => '0'));
-        out_valid <= '0';
-      else
-        mcm_loop : for i in DOT_PRODUCT_SIZE - 1 downto 0 loop
+      --if (reset_n = '0') or (enable = '0') or (in_valid = '0') then
+      --  out_data  <= (others => (others => '0'));
+      --  out_valid <= '0';
+      --else
+        mcm_loop : for i in 0 to (DOT_PRODUCT_SIZE - 1) loop
             --out_data(i) <= std_logic_vector(signed(signed(KERNEL_VALUE(i)) * signed(in_data(i))));
+          --out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
           out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
         end loop;
-        out_valid <= '1';
-      end if;
+        out_valid <= in_valid;
+      -- end if;
     end if;
   end process;
 
