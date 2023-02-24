@@ -226,9 +226,9 @@ begin
     end generate;
 
     passthrough_activation: if (not USE_RELU_ACTIVATION) and (not USE_TANH_ACTIVATION) generate
-      --out_data(n) <= dp_data(n)(PROD_WIDTH-1) & dp_data(n)(PROD_WIDTH-2 downto BITWIDTH);
+      out_data(n) <= dp_data(n)(PROD_WIDTH-1) & dp_data(n)(PROD_WIDTH-2 downto BITWIDTH);
       -- debugging
-      out_data(n) <= dp_data(n)(PROD_WIDTH-1) & dp_data(n)(BITWIDTH-1 downto 0);
+      -- out_data(n) <= dp_data(n)(PROD_WIDTH-1) & dp_data(n)(BITWIDTH-1 downto 0);
     end generate;
 
   end generate DotProduct_loop;

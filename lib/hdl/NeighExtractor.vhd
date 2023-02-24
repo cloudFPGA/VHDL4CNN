@@ -100,7 +100,7 @@ begin
       if (reset_n = '0') or (in_fv = '0') then
         pixel_buffer <= (others => (others => (others => '0')));
         valid_buffer <= (others => (others => '0'));
-      -- horizontal_pos_buffer <= (others => (others => (others => '0')));
+        -- horizontal_pos_buffer <= (others => (others => (others => '0')));
         vertical_pos_buffer <= (others => (others => (others => '0')));
         horizontal_cnt <= (others => '0');
         vertical_cnt <= (others => '0');
@@ -109,52 +109,57 @@ begin
         out_dv <= '0';
         out_fv <= '0';
       else
-        if (enable = '1') then
-          out_fv <= '1';
+        out_fv <= '1'; --is anyhow more or less ignored
+        if (enable = '1') and (in_dv = '1') then
 
-        -- advance buffers
+          -- advance buffers
           pixel_buffer(0, 0) <= in_data;
           valid_buffer(0, 0) <= in_dv;
-        -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
+          -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
           vertical_pos_buffer(0, 0) <= vertical_cnt;
 
           first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
             pixel_buffer(0, j) <= pixel_buffer(0, j-1);
             valid_buffer(0, j) <= valid_buffer(0, j-1);
-          -- horizontal_pos_buffer(0, j) <= horizontal_pos_buffer(0, j-1);
+            -- horizontal_pos_buffer(0, j) <= horizontal_pos_buffer(0, j-1);
             vertical_pos_buffer(0, j) <= vertical_pos_buffer(0, j-1);
           end loop first_line_loop;
 
           outer_buffer_loop: for i in 1 to (KERNEL_SIZE - 1) loop
             pixel_buffer(i, 0) <= pixel_buffer(i-1, IMAGE_WIDTH - 1);
             valid_buffer(i, 0) <= valid_buffer(i-1, IMAGE_WIDTH - 1);
-          -- horizontal_pos_buffer(i, 0) <= horizontal_pos_buffer(i-1, IMAGE_WIDTH - 1);
+            -- horizontal_pos_buffer(i, 0) <= horizontal_pos_buffer(i-1, IMAGE_WIDTH - 1);
             vertical_pos_buffer(i, 0) <= vertical_pos_buffer(i-1, IMAGE_WIDTH - 1);
             inner_buffer_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
               pixel_buffer(i, j) <= pixel_buffer(i, j-1);
               valid_buffer(i, j) <= valid_buffer(i, j-1);
-            -- horizontal_pos_buffer(i, j) <= horizontal_pos_buffer(i, j-1);
+              -- horizontal_pos_buffer(i, j) <= horizontal_pos_buffer(i, j-1);
               vertical_pos_buffer(i, j) <= vertical_pos_buffer(i, j-1);
             end loop inner_buffer_loop;
           end loop outer_buffer_loop;
 
-        -- set out data
+          -- set out data
           kernel_loop: for k in 0 to (KERNEL_SIZE-1) loop
             inner_kernel_loop: for l in 0 to (KERNEL_SIZE-1) loop
-            --out_data((k+1)*KERNEL_SIZE - 1 downto k*KERNEL_SIZE) <= pixel_buffer(k, KERNEL_SIZE - 1 downto 0);
+              --out_data((k+1)*KERNEL_SIZE - 1 downto k*KERNEL_SIZE) <= pixel_buffer(k, KERNEL_SIZE - 1 downto 0);
               out_data(k*KERNEL_SIZE + l) <= pixel_buffer(k, l);
             end loop inner_kernel_loop;
           end loop kernel_loop;
 
-        -- calculate valid
+          -- calculate valid
+          tmp_valid := '1';
+          position_valid := '1';
           outer_valid_loop: for k in 0 to (KERNEL_SIZE - 1) loop
             inner_valid_loop: for l in 0 to (KERNEL_SIZE - 1) loop
-              tmp_valid := tmp_valid and valid_buffer(k, l);
+              if (valid_buffer(k,l) = '0') then
+                tmp_valid := '0';
+              end if;
+            --tmp_valid := tmp_valid and valid_buffer(k, l);
             end loop inner_valid_loop;
             inner_pos_loop: for p in 1 to (KERNEL_SIZE - 1) loop
-            --if (vertical_pos_buffer(k, p-1) = vertical_pos_buffer(k, p)) then
-            --  position_valid := position_valid;
-            --else
+              --if (vertical_pos_buffer(k, p-1) = vertical_pos_buffer(k, p)) then
+              --  position_valid := position_valid;
+              --else
               if (vertical_pos_buffer(k, p-1) /= vertical_pos_buffer(k, p)) then
                 position_valid := '0';
               end if;
@@ -162,7 +167,7 @@ begin
           end loop outer_valid_loop;
           out_dv <= tmp_valid and position_valid;
 
-        -- increase counter
+          -- increase counter
           if (horizontal_cnt = (IMAGE_WIDTH - 1)) then
             horizontal_cnt <= (others => '0');
             if (vertical_cnt = (IMAGE_WIDTH - 1)) then
@@ -176,7 +181,6 @@ begin
         else
           out_data <= (others => (others => '0'));
           out_dv <= '0';
-          out_fv <= '0';
         end if;
       end if;
     end if;
