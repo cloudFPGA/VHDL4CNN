@@ -6,7 +6,7 @@
 library ieee;
 use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
-use work.bitwidths.all;
+use work.bitwidths.all;  -- must stay line number 9, will be overwritten by Haddoc2OSG
 
 package cnn_types is
   ------------------------------------------------------------------------------

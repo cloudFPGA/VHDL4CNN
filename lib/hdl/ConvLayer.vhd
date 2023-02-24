@@ -126,7 +126,7 @@ architecture STRUCTURAL of ConvLayer is
   signal neighborhood_data : pixel_array (NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
   signal neighborhood_dv   : std_logic;
   signal neighborhood_fv   : std_logic;
-  signal dp_data           : sum_array (NB_OUT_FLOWS-1 downto 0);
+  signal dp_data           : prod_array (NB_OUT_FLOWS-1 downto 0);
   signal dp_dv             : std_logic;
   signal dp_fv             : std_logic;
 -----------------------------------------------------------------------------------------
