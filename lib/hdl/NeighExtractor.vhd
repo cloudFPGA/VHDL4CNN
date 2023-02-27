@@ -112,13 +112,13 @@ begin
         out_fv <= '0';
       else
         out_fv <= '1'; --is anyhow more or less ignored
-        last_dv <= in_dv;
+        last_dv <= in_dv; --to get last pixel per frame
         -- if (enable = '1') and (in_dv = '1') then
         if (enable = '1') and ((in_dv = '1') or (last_dv = '1')) then
 
           -- advance buffers
           pixel_buffer(0, 0) <= in_data;
-          valid_buffer(0, 0) <= in_dv;
+          valid_buffer(0, 0) <= in_dv; --yes, the pixel after the last pixel will be invalid and therefore "drain/poison" the full buffer
           -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
           vertical_pos_buffer(0, 0) <= vertical_cnt;
 
