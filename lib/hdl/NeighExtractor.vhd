@@ -89,6 +89,7 @@ architecture rtl of neighExtractor is
 
   signal horizontal_cnt: unsigned(WIDTH_COUNTER - 1 downto 0);
   signal vertical_cnt: unsigned(WIDTH_COUNTER - 1 downto 0);
+  signal last_dv: std_logic;
 
 begin
 
@@ -104,13 +105,16 @@ begin
         vertical_pos_buffer <= (others => (others => (others => '0')));
         horizontal_cnt <= (others => '0');
         vertical_cnt <= (others => '0');
+        last_dv <= '0';
 
         out_data <= (others => (others => '0'));
         out_dv <= '0';
         out_fv <= '0';
       else
         out_fv <= '1'; --is anyhow more or less ignored
-        if (enable = '1') and (in_dv = '1') then
+        last_dv <= in_dv;
+        -- if (enable = '1') and (in_dv = '1') then
+        if (enable = '1') and ((in_dv = '1') or (last_dv = '1')) then
 
           -- advance buffers
           pixel_buffer(0, 0) <= in_data;
