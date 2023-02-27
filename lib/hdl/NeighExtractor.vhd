@@ -90,6 +90,7 @@ architecture rtl of neighExtractor is
   signal horizontal_cnt: unsigned(WIDTH_COUNTER - 1 downto 0);
   signal vertical_cnt: unsigned(WIDTH_COUNTER - 1 downto 0);
   signal last_dv: std_logic;
+  signal internal_reset: std_logic;
 
 begin
 
@@ -106,6 +107,7 @@ begin
         horizontal_cnt <= (others => '0');
         vertical_cnt <= (others => '0');
         last_dv <= '0';
+        internal_reset <= '0';
 
         out_data <= (others => (others => '0'));
         out_dv <= '0';
@@ -113,12 +115,13 @@ begin
       else
         out_fv <= '1'; --is anyhow more or less ignored
         last_dv <= in_dv; --to get last pixel per frame
+        internal_reset <= '0';
         -- if (enable = '1') and (in_dv = '1') then
         if (enable = '1') and ((in_dv = '1') or (last_dv = '1')) then
 
           -- advance buffers
           pixel_buffer(0, 0) <= in_data;
-          valid_buffer(0, 0) <= in_dv; --yes, the pixel after the last pixel will be invalid and therefore "drain/poison" the full buffer
+          valid_buffer(0, 0) <= in_dv; --yes, the pixel after the last pixel will be invalid and therefore "drain/poison" parts of full buffer
           -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
           vertical_pos_buffer(0, 0) <= vertical_cnt;
 
@@ -176,15 +179,27 @@ begin
             horizontal_cnt <= (others => '0');
             if (vertical_cnt = (IMAGE_WIDTH - 1)) then
               vertical_cnt <= (others => '0');
+              -- here, we are at the end of a frame, so we should reset the complete buffers
+              -- but delayed by one cycle
+              internal_reset <= '1';
             else
-              vertical_cnt <= vertical_cnt + to_unsigned(1, WIDTH_COUNTER);
+              if (in_dv = '1') then
+                vertical_cnt <= vertical_cnt + to_unsigned(1, WIDTH_COUNTER);
+              end if;
             end if;
           else
-            horizontal_cnt <= horizontal_cnt + to_unsigned(1, WIDTH_COUNTER);
+            if (in_dv = '1') then
+              horizontal_cnt <= horizontal_cnt + to_unsigned(1, WIDTH_COUNTER);
+            end if;
           end if;
         else
           out_data <= (others => (others => '0'));
           out_dv <= '0';
+        end if;
+        if (internal_reset = '1') then
+          -- invalidate buffer, except a potential new input (from the current cycle, i.e. position 0,0)
+          valid_buffer <= (others => (others => '0'));
+          valid_buffer(0, 0) <= in_dv and enable;
         end if;
       end if;
     end if;
