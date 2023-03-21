@@ -11,11 +11,11 @@ use work.cnn_types.all;
 entity ReluLayer is
   generic(
     BITWIDTH   : integer;
-    SUM_WIDTH  : integer;
+    PROD_WIDTH  : integer;
     KERNEL_SIZE : integer
     );
   port(
-    in_data  : in  std_logic_vector (SUM_WIDTH-1 downto 0);
+    in_data  : in  std_logic_vector (PROD_WIDTH-1 downto 0);
     out_data : out std_logic_vector (BITWIDTH-1 downto 0)
     );
 end entity;
@@ -26,7 +26,7 @@ architecture Bhv of ReluLayer is
   -- actually two bits per addition...so 2*BITWIDTH?
   --constant SCALE_SHIFT        : integer := BITWIDTH + KERNEL_SIZE;
   --constant SCALE_SHIFT        : integer := 2 * BITWIDTH;
-  signal scaled_back_data: std_logic_vector(SUM_WIDTH-1 downto 0);
+  signal scaled_back_data: std_logic_vector(PROD_WIDTH-1 downto 0);
 
 begin
 
@@ -42,8 +42,9 @@ begin
   -- TODO: clean up, scale back happens before adder tree (MOA)
   -- scaled_back_data <= in_data;
   -- TODO for debugging
-  out_data <= (others => '0') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
-              in_data(in_data'left) & in_data(2*BITWIDTH downto BITWIDTH + 1);
+  out_data <= (others => '0') when (signed(in_data) < to_signed(0, PROD_WIDTH)) else
+              --in_data(in_data'left) & in_data(2*BITWIDTH downto BITWIDTH + 1);
+              in_data(PROD_WIDTH - 1  downto PROD_WIDTH - BITWIDTH);
   -- -- out_data <= (others => '1') when (signed(in_data) < to_signed(0, SUM_WIDTH)) else
   --             std_logic_vector(to_signed(SCALE_FACTOR, BITWIDTH)) when (signed(scaled_back_data) > to_signed(SCALE_FACTOR, SUM_WIDTH)) else
   --             --scaled_back_data(BITWIDTH-1 downto 0);
