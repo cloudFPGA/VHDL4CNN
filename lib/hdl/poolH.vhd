@@ -1,13 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
---use ieee.math_real.all;
 
 
 entity poolH is
   generic(
     BITWIDTH  : integer;
-    IMAGE_WIDTH : integer;
+    IMAGE_WIDTH : integer; --not used?
     KERNEL_SIZE : integer
     );
   port(
@@ -30,7 +29,6 @@ architecture rtl of poolH is
   type buffer_data_type is array (integer range <>) of signed (BITWIDTH-1 downto 0);
 
   signal buffer_data      : buffer_data_type (KERNEL_SIZE - 1 downto 0);
-  --signal max_value_signal : signed(BITWIDTH-1 downto 0);
   signal buffer_fv        : std_logic_vector(KERNEL_SIZE downto 0);
   signal delay_fv         : std_logic := '0';
   signal tmp_dv           : std_logic := '0';
@@ -47,8 +45,6 @@ begin
       if (reset_n = '0') or (in_fv = '0') then
         tmp_dv           <= '0';
         buffer_data      <= (others => (others => '0'));
-        --max_value_signal <= (others => '0');
-        --x_cmp            := (others => '0');
         x_cmp  <= to_unsigned(0, 16);
         delay_dv <= '0';
 
@@ -61,13 +57,6 @@ begin
             buffer_data(i-1) <= buffer_data(i);
           end loop;
 
-          --  -- Compute max -----------------------------------------------------------
-          --if (buffer_data(0) > buffer_data(1)) then
-          --  max_value_signal <= buffer_data(0);
-          --else
-          --  max_value_signal <= buffer_data(1);
-          --end if;
-
           -- H Subsample -------------------------------------------------------------
           if (x_cmp >= to_unsigned(KERNEL_SIZE-1, 16)) then
             tmp_dv <= '1';
@@ -79,26 +68,9 @@ begin
         --------------------------------------------------------------------------
         else
           -- Data is not valid
-          --max_value_signal <= (others => '0');
-          --max_value_signal <= to_signed(11, BITWIDTH);
-          --max_value_signal <= signed(in_data);
           tmp_dv <= '0';
-          --buffer_data(0) <= signed(in_data);
-          --buffer_data(1) <= signed(in_data);
-          --buffer_data(0) <= to_signed(11, BITWIDTH);
-          --buffer_data(1) <= to_signed(11, BITWIDTH);
         end if;
-      --else
-      --  -- Frame is not valid
-      --  tmp_dv           <= '0';
-      --  buffer_data      <= (others => (others => '0'));
-      --  max_value_signal <= (others => '0');
-      --  --x_cmp            := (others => '0');
-      --  x_cmp  := to_unsigned(1, 16);
-      --end if;
       else
-        --max_value_signal <= (others => '0');
-        --max_value_signal <= to_signed(9, BITWIDTH);
         tmp_dv <= '0';
         delay_dv <= '0';
       end if;
@@ -106,20 +78,6 @@ begin
   end process;
 
   --------------------------------------------------------------------------
-  --delay : process(clk)
-  --begin
-  --  if (reset_n = '0') then
-  --    delay_fv  <= '0';
-  --    buffer_fv <= (others => '0');
-  --  elsif (rising_edge(clk)) then
-  --    if (enable = '1') then
-  --      buffer_fv <= buffer_fv(buffer_fv'high -1 downto 0) & in_fv;
-  --      delay_fv  <= buffer_fv(buffer_fv'high);
-  --    else
-  --      delay_fv  <= '0';
-  --    end if;
-  --  end if;
-  --end process;
 
   delay : process(clk)
   begin
@@ -138,13 +96,11 @@ begin
     end if;
   end process;
 
-  --out_data <= std_logic_vector(max_value_signal);
-  --out_data <= std_logic_vector(resize(signed(max_value_signal), BITWIDTH));
+
   out_data <= std_logic_vector(buffer_data(0)) when (buffer_data(0) > buffer_data(1)) else
               std_logic_vector(buffer_data(1));
 
   out_fv   <= delay_fv;
-  --out_dv   <= delay_dv;
   out_dv   <= tmp_dv;
 
 end architecture;
