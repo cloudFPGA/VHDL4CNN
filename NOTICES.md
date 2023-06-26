@@ -1,10 +1,22 @@
 NOTICES
 ============
 
-The VHDL4CNN library is based on the original "haddoc2" libray, published by K. Abdelouahab [here](https://github.com/DreamIP/haddoc2) under the BSD 2-Clause license. Therefore, the original copyright and license can be found below.
+IBM cloudFPGA -- VHDL4CNN
+Copyright 2021 -- 2023 IBM Corporation
+
+This product includes software developed at [IBM Corporation](http://www.ibm.com/).
+
+IBM and the IBM logo are trademarks of International Business Machines
+Corporation, registered in many jurisdictions worldwide. Other product and
+service names might be trademarks of IBM or other companies. A current list
+of IBM trademarks is available on [ibm.com/trademark](http://ibm.com/trademark).
+
+
+The VHDL4CNN library is based on the original "haddoc2" libray, published by K. Abdelouahab [here](https://github.com/DreamIP/haddoc2) under the BSD 2-Clause license. The original copyright and license can be found below.
 The major changes and refactoring by the authors of VHDL4CNN are done under the Apache-2.0 license, hence the BSD 2-Clause license is [subsumed](https://www.gnu.org/licenses/license-compatibility.html) by the Apache-2.0 license.
 
-BSD 2-Clause License
+
+Haddoc2: BSD 2-Clause License
 --------------------------
 
 Copyright (c) 2017, Kamel ABDELOUAHAB
