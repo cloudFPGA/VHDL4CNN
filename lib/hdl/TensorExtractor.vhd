@@ -137,5 +137,6 @@ begin
           );
     end generate MULTI_CHANNEL;
   end generate neighExtractor_gen;
+
 end architecture;
 

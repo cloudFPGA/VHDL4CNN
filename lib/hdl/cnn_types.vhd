@@ -97,3 +97,4 @@ package body cnn_types is
     return out_vec;
   end extractRow;
 end cnn_types;
+

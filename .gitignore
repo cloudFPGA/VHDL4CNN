@@ -1,49 +1,5 @@
-#Quartus rules
-*/db/
-*/incremental_db/
-*.bak
-*.stp
-*/altera/*
-*/lpm/*
-*/altera_mf/*
-*/work/*
-*.wlf
-*/output_files/
-*.qws
-*/simulation/*
-*.qdb
-*.qpg
-*.qtl
-*_vmake
-*_info
-*.qsf
-*.qpf
 
-# texmaker rules
-*.out
-*.log
-*.lof
-*.lol
-*.lot
-*.loc
-*.synctex.gz
-*.toc
-*.aux
-*.ps
-*.synctex.gz(busy)
-
-# generals
-*/build/*
-*.pyc
-
-# examples
-example/hdl_generated/*
-example/quartus
-
-# Caffe
-caffe/dataset/*
-*.caffemodel
-
+# VIM
 *.swp
 
 
