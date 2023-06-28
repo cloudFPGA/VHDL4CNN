@@ -101,22 +101,22 @@ use work.cnn_types.all;
 entity neighExtractor is
 
   generic(
-    BITWIDTH  : integer;
-    IMAGE_WIDTH : integer;
-    KERNEL_SIZE : integer
-    );
+           BITWIDTH  : integer;
+           IMAGE_WIDTH : integer;
+           KERNEL_SIZE : integer
+         );
 
   port(
-    clk      : in  std_logic;
-    reset_n  : in  std_logic;
-    enable   : in  std_logic;
-    in_data  : in  std_logic_vector((BITWIDTH-1) downto 0);
-    in_dv    : in  std_logic;
-    in_fv    : in  std_logic;
-    out_data : out pixel_array ((KERNEL_SIZE * KERNEL_SIZE)- 1 downto 0);
-    out_dv   : out std_logic;
-    out_fv   : out std_logic
-    );
+        clk      : in  std_logic;
+        reset_n  : in  std_logic;
+        enable   : in  std_logic;
+        in_data  : in  std_logic_vector((BITWIDTH-1) downto 0);
+        in_dv    : in  std_logic;
+        in_fv    : in  std_logic;
+        out_data : out pixel_array ((KERNEL_SIZE * KERNEL_SIZE)- 1 downto 0);
+        out_dv   : out std_logic;
+        out_fv   : out std_logic
+      );
 end neighExtractor;
 
 architecture rtl of neighExtractor is
@@ -161,36 +161,39 @@ begin
         out_fv <= '1'; --is anyhow more or less ignored
         last_dv <= in_dv; --to get last pixel per frame
         internal_reset <= '0';
-        -- if (enable = '1') and (in_dv = '1') then
-        if (enable = '1') and ((in_dv = '1') or (last_dv = '1')) then
 
-          -- advance buffers
-          pixel_buffer(0, 0) <= in_data;
-          valid_buffer(0, 0) <= in_dv; --yes, the pixel after the last pixel will be invalid and therefore "drain/poison" parts of full buffer
-          -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
-          vertical_pos_buffer(0, 0) <= vertical_cnt;
+        if (enable = '1') then
 
-          first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
-            pixel_buffer(0, j) <= pixel_buffer(0, j-1);
-            valid_buffer(0, j) <= valid_buffer(0, j-1);
-            -- horizontal_pos_buffer(0, j) <= horizontal_pos_buffer(0, j-1);
-            vertical_pos_buffer(0, j) <= vertical_pos_buffer(0, j-1);
-          end loop first_line_loop;
+          if (in_dv = '1') then
+            -- advance buffers
+            pixel_buffer(0, 0) <= in_data;
+            valid_buffer(0, 0) <= in_dv; --yes, the pixel after the last pixel will be invalid and therefore "drain/poison" parts of full buffer
+                                         -- horizontal_pos_buffer(0, 0) <= horizontal_cnt;
+            vertical_pos_buffer(0, 0) <= vertical_cnt;
 
-          outer_buffer_loop: for i in 1 to (KERNEL_SIZE - 1) loop
-            pixel_buffer(i, 0) <= pixel_buffer(i-1, IMAGE_WIDTH - 1);
-            valid_buffer(i, 0) <= valid_buffer(i-1, IMAGE_WIDTH - 1);
-            -- horizontal_pos_buffer(i, 0) <= horizontal_pos_buffer(i-1, IMAGE_WIDTH - 1);
-            vertical_pos_buffer(i, 0) <= vertical_pos_buffer(i-1, IMAGE_WIDTH - 1);
-            inner_buffer_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
-              pixel_buffer(i, j) <= pixel_buffer(i, j-1);
-              valid_buffer(i, j) <= valid_buffer(i, j-1);
-              -- horizontal_pos_buffer(i, j) <= horizontal_pos_buffer(i, j-1);
-              vertical_pos_buffer(i, j) <= vertical_pos_buffer(i, j-1);
-            end loop inner_buffer_loop;
-          end loop outer_buffer_loop;
+            first_line_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+              pixel_buffer(0, j) <= pixel_buffer(0, j-1);
+              valid_buffer(0, j) <= valid_buffer(0, j-1);
+              -- horizontal_pos_buffer(0, j) <= horizontal_pos_buffer(0, j-1);
+              vertical_pos_buffer(0, j) <= vertical_pos_buffer(0, j-1);
+            end loop first_line_loop;
+
+            outer_buffer_loop: for i in 1 to (KERNEL_SIZE - 1) loop
+              pixel_buffer(i, 0) <= pixel_buffer(i-1, IMAGE_WIDTH - 1);
+              valid_buffer(i, 0) <= valid_buffer(i-1, IMAGE_WIDTH - 1);
+              -- horizontal_pos_buffer(i, 0) <= horizontal_pos_buffer(i-1, IMAGE_WIDTH - 1);
+              vertical_pos_buffer(i, 0) <= vertical_pos_buffer(i-1, IMAGE_WIDTH - 1);
+              inner_buffer_loop: for j in 1 to (IMAGE_WIDTH - 1) loop
+                pixel_buffer(i, j) <= pixel_buffer(i, j-1);
+                valid_buffer(i, j) <= valid_buffer(i, j-1);
+                -- horizontal_pos_buffer(i, j) <= horizontal_pos_buffer(i, j-1);
+                vertical_pos_buffer(i, j) <= vertical_pos_buffer(i, j-1);
+              end loop inner_buffer_loop;
+            end loop outer_buffer_loop;
+          end if;
 
           -- set out data
+          -- always, no if in_dv
           kernel_loop: for k in 0 to (KERNEL_SIZE-1) loop
             inner_kernel_loop: for l in 0 to (KERNEL_SIZE-1) loop
               --out_data((k+1)*KERNEL_SIZE - 1 downto k*KERNEL_SIZE) <= pixel_buffer(k, KERNEL_SIZE - 1 downto 0);
@@ -199,6 +202,7 @@ begin
           end loop kernel_loop;
 
           -- calculate valid
+          -- always, no if in_dv
           tmp_valid := '1';
           position_valid := '1';
           outer_valid_loop: for k in 0 to (KERNEL_SIZE - 1) loop
@@ -217,19 +221,26 @@ begin
               end if;
             end loop inner_pos_loop;
           end loop outer_valid_loop;
-          out_dv <= tmp_valid and position_valid;
+          -- out_dv <= tmp_valid and position_valid;
+          out_dv <= (tmp_valid and position_valid) and last_dv;
 
           -- increase counter
-          if (horizontal_cnt = (IMAGE_WIDTH - 1)) then
-            horizontal_cnt <= (others => '0');
-            if (vertical_cnt = (IMAGE_WIDTH - 1)) then
-              vertical_cnt <= (others => '0');
-              -- here, we are at the end of a frame, so we should reset the complete buffers
-              -- but delayed by one cycle
-              internal_reset <= '1';
+          if (in_dv = '1') then
+            if (horizontal_cnt = (IMAGE_WIDTH - 1)) then
+              horizontal_cnt <= (others => '0');
+              if (vertical_cnt = (IMAGE_WIDTH - 1)) then
+                vertical_cnt <= (others => '0');
+                -- here, we are at the end of a frame, so we should reset the complete buffers
+                -- but delayed by one cycle
+                internal_reset <= '1';
+              else
+                if (in_dv = '1') then
+                  vertical_cnt <= vertical_cnt + to_unsigned(1, WIDTH_COUNTER);
+                end if;
+              end if;
             else
               if (in_dv = '1') then
-                vertical_cnt <= vertical_cnt + to_unsigned(1, WIDTH_COUNTER);
+                horizontal_cnt <= horizontal_cnt + to_unsigned(1, WIDTH_COUNTER);
               end if;
             end if;
           else
