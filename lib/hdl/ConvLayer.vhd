@@ -78,6 +78,8 @@ entity ConvLayer is
     NB_OUT_FLOWS : integer;
     USE_RELU_ACTIVATION : boolean;
     USE_TANH_ACTIVATION : boolean;
+    USE_MULTI_THRESHOLD : boolean;
+    USED_MULTI_THRESHOLD_LAYER_ID: integer;
     KERNEL_VALUE : pixel_matrix;
     BIAS_VALUE   : pixel_array
     );
@@ -164,6 +166,19 @@ architecture STRUCTURAL of ConvLayer is
       out_data : out std_logic_vector (BITWIDTH-1 downto 0)
       );
   end component ReluLayer;
+
+  component MultiThresholdOperation
+    generic(
+      BITWIDTH   : integer;
+      PROD_WIDTH  : integer;
+      USED_LAYER_ID: integer;
+      USED_LAYER_CHANNEL_ID: integer;
+      );
+    port(
+      in_data  : in  std_logic_vector(PROD_WIDTH-1 downto 0);
+      out_data : out std_logic_vector(BITWIDTH-1 downto 0)
+      );
+  end component;
 
   ------------------------------------------------------------------------------------------
   signal neighborhood_data : pixel_array (NB_IN_FLOWS * KERNEL_SIZE * KERNEL_SIZE- 1 downto 0);
@@ -268,7 +283,21 @@ begin
           );
     end generate;
 
-    passthrough_activation: if (not USE_RELU_ACTIVATION) and (not USE_TANH_ACTIVATION) generate
+    multi_threshold: if USE_MULTI_THRESHOLD generate
+      multi_threshold_operation_i: MultiThresholdOperation
+        generic(
+          BITWIDTH => BITWIDTH,
+          PROD_WIDTH => PROD_WIDTH,
+          USED_LAYER_ID => USED_MULTI_THRESHOLD_LAYER_ID,
+          USED_LAYER_CHANNEL_ID => n,
+          );
+        port(
+          in_data => dp_data(n),
+          out_data => out_data(n)
+          );
+    end generate;
+
+    passthrough_activation: if (not USE_RELU_ACTIVATION) and (not USE_TANH_ACTIVATION) and (not USE_MULTI_THRESHOLD) generate
       out_data(n) <= dp_data(n)(PROD_WIDTH-1) & dp_data(n)(PROD_WIDTH-2 downto BITWIDTH);
     end generate;
 
