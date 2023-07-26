@@ -172,7 +172,7 @@ architecture STRUCTURAL of ConvLayer is
       BITWIDTH   : integer;
       PROD_WIDTH  : integer;
       USED_LAYER_ID: integer;
-      USED_LAYER_CHANNEL_ID: integer;
+      USED_LAYER_CHANNEL_ID: integer
       );
     port(
       in_data  : in  std_logic_vector(PROD_WIDTH-1 downto 0);
@@ -285,13 +285,13 @@ begin
 
     multi_threshold: if USE_MULTI_THRESHOLD generate
       multi_threshold_operation_i: MultiThresholdOperation
-        generic(
+        generic map (
           BITWIDTH => BITWIDTH,
           PROD_WIDTH => PROD_WIDTH,
           USED_LAYER_ID => USED_MULTI_THRESHOLD_LAYER_ID,
-          USED_LAYER_CHANNEL_ID => n,
-          );
-        port(
+          USED_LAYER_CHANNEL_ID => n
+          )
+        port map (
           in_data => dp_data(n),
           out_data => out_data(n)
           );
