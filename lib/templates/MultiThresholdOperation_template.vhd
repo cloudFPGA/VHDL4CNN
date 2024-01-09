@@ -52,7 +52,7 @@ begin
 --               "0001" when in_data = "11";
 --  end generate multi_threshold_X_Y;
 
--- DOSA_INSERT_GENRICS_FOR_WHEN_ELSE
+-- DOSA_INSERT_GENERICS_FOR_WHEN_ELSE
 
 
 end architecture;
