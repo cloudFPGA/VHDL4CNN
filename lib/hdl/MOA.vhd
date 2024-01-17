@@ -94,9 +94,11 @@ begin
            in_data=>in_data,
            out_data=>tmp_data, out_valid=>tmp_valid);
 
+  bias_cast(PROD_WIDTH -1 downto 0) <= (others => '0');
   -- TODO
-  bias_cast(PROD_WIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
-  bias_cast(BITWIDTH -1 downto 0) <= (others => '0');
+  --bias_cast(PROD_WIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
+  --bias_cast(PROD_WIDTH-1 downto PROD_WIDTH-BITWIDTH) <= BIAS_VALUE;
+  bias_cast(BITWIDTH+BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
 
   process(clk)
   begin
