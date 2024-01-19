@@ -98,7 +98,10 @@ begin
   -- TODO
   --bias_cast(PROD_WIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
   --bias_cast(PROD_WIDTH-1 downto PROD_WIDTH-BITWIDTH) <= BIAS_VALUE;
-  bias_cast(BITWIDTH+BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
+  -- bias_cast(BITWIDTH+BITWIDTH-1 downto BITWIDTH) <= BIAS_VALUE;
+  -- sign bit etc.
+  bias_cast(BITWIDTH+BITWIDTH-3 downto BITWIDTH-1) <= BIAS_VALUE(BITWIDTH-2 downto 0);
+  bias_cast(PROD_WIDTH-1) <= BIAS_VALUE(BITWIDTH-1);
 
   process(clk)
   begin
