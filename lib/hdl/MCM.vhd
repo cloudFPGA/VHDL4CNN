@@ -75,6 +75,8 @@ end MCM;
 
 architecture rtl of MCM is
 
+  variable tmp_prod_result: std_logic_vector(2*BITWIDTH-1 downto 0);
+
 begin
 
 
@@ -86,7 +88,12 @@ begin
       --  out_valid <= '0';
       --else
         mcm_loop : for i in 0 to (DOT_PRODUCT_SIZE - 1) loop
-          out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
+          -- out_data(i) <= std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
+          tmp_prod_result := std_logic_vector(signed(KERNEL_VALUE(i)) * signed(in_data(i)));
+          out_data(i) <= (others => '0');
+          out_data(i)(2*BITWIDTH - 2 downto 0) <= tmp_prod_result(2* BITWIDTH -2 downto 0);
+          -- sign bit
+          out_data(i)(out_data(i)'length-1) <= tmp_prod_result(2*BITWIDTH-1);
         end loop;
         out_valid <= in_valid;
       -- end if;
