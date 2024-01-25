@@ -75,12 +75,11 @@ end MCM;
 
 architecture rtl of MCM is
 
-  variable tmp_prod_result: std_logic_vector(2*BITWIDTH-1 downto 0);
-
 begin
 
 
   process(clk)
+    variable tmp_prod_result: std_logic_vector(2*BITWIDTH-1 downto 0);
   begin
     if (rising_edge(clk)) then
       --if (reset_n = '0') or (enable = '0') or (in_valid = '0') then
