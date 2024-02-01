@@ -1,5 +1,5 @@
 -- /*******************************************************************************
---  * Copyright 2021 -- 2023 IBM Corporation
+--  * Copyright 2021 -- 2024 IBM Corporation
 --  *
 --  * Licensed under the Apache License, Version 2.0 (the "License");
 --  * you may not use this file except in compliance with the License.
@@ -64,9 +64,9 @@ package cnn_types is
 
   ------------------------------------------------------------------------------
   -- Constants to implement piecewize TanH : cf DotProduct.vhd
-  constant SCALE_FACTOR : integer := 2 **(GENERAL_BITWIDTH-1);  -- TODO: NO -1!!
+  constant SCALE_FACTOR : integer := 2 **(GENERAL_BITWIDTH-1);
   constant ROUND_FACTOR : integer := SCALE_FACTOR / 2;
-  constant SCALE_BITS   : integer := GENERAL_BITWIDTH - 1; -- TODO: make dynamic=> signed/unsigned, how much integer...
+  constant SCALE_BITS   : integer := GENERAL_BITWIDTH - 1; -- only for TANH layer, not for thresholding
   constant A1           : integer := GENERAL_BITWIDTH - 1;
   constant A2           : integer := GENERAL_BITWIDTH;
   constant T1           : integer := SCALE_FACTOR * SCALE_FACTOR / 2;

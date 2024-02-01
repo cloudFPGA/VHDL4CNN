@@ -2,7 +2,7 @@ NOTICES
 ============
 
 IBM cloudFPGA -- VHDL4CNN
-Copyright 2021 -- 2023 IBM Corporation
+Copyright 2021 -- 2024 IBM Corporation
 
 This product includes software developed at [IBM Corporation](http://www.ibm.com/).
 
